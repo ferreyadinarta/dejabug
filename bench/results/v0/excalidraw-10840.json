@@ -1,0 +1,15 @@
+{
+  "id": "excalidraw/excalidraw#10840",
+  "slug": "excalidraw-10840",
+  "buggy_version": "@excalidraw/excalidraw 0.18.0-2874f9e (1 commit behind fix cae9d2b)",
+  "fixed_version": "@excalidraw/excalidraw 0.18.0-60b2758 (1 commit ahead of fix cae9d2b)",
+  "setup_notes": "Vite+React 19 app with the <Excalidraw> component and one YouTube embeddable preloaded. The video's YouTube video could not be identified, so a generic link is used. Sanity check (Alt+R, K, Esc, Alt+R): the buggy build ends on toolbar-hand, the fixed build on toolbar-selection. The fixed server was stopped during the blind run so the agent could not reach it.",
+  "dejabug_verdict": "TIMEOUT (attempt 1 still writing at 25 min, killed; no result.json)",
+  "coverage": null,
+  "attempts_used": 1,
+  "seconds": 1501,
+  "fixed_build_exit": null,
+  "bug_inferred_by_dejabug": "No final verdict. The unfinished repro_test.py checked view-mode toggling through the context menu and whether the iframe was interactive after exiting view mode. It had no laser-pointer (K) step and did not check the active tool.",
+  "matches_real_bug": "no",
+  "notes": "80 events / 11 clicks extracted from the 23.6 s video. The agent spent the whole budget exploring view mode and embed interactivity (explore.py) and did not converge. Its draft targeted the embeddable-interactivity symptom, not the hand-tool symptom."
+}

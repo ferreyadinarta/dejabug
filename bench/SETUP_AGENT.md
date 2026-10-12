@@ -24,8 +24,9 @@ For each issue in your list:
    version for Docusaurus) that show the SAME component/page/setup as in the video,
    matching it as closely as you reasonably can (same demo content, same props,
    same data). Pin exact versions. Add node_modules/ to its .gitignore.
-   Start each with `npm run dev -- --port <PORT> --strictPort` in the background
-   (nohup ... &; record the PID), wait for HTTP 200.
+   Start ONLY THE BUGGY build now with `npm run dev -- --port <PORT> --strictPort` in
+   the background (nohup ... &; record the PID), wait for HTTP 200. Do not start the
+   fixed build until step 6: a blind run must not be able to find it.
 
 4. Sanity check (optional but recommended): you may write a quick throwaway script at
    bench/apps/<slug>/sanity.py to confirm the bug is visible on the buggy build. Never
@@ -38,7 +39,8 @@ For each issue in your list:
    e.g. `perl -e 'select(undef,undef,undef,30)'`). Give up after 25 minutes.
    Do NOT edit or help with the generated test. Do NOT edit any file under dejabug/.
 
-6. If result.json says REPRODUCED and a fixed build exists, run the generated test against it:
+6. Now stop the buggy server and start the fixed build. If result.json says REPRODUCED
+   and a fixed build exists, run the generated test against it:
      uv run dejabug test out/bench-run/<slug>/repro_test.py --url http://localhost:<FIXED_PORT>; echo exit=$?
    (exit 0 = passes on the fix = the test is specific to this bug).
 
@@ -51,5 +53,7 @@ For each issue in your list:
 8. Clean up: kill both dev servers (kill <PIDs>; pkill -f "port <PORT>" as backup), then
    delete bench/apps/<slug>/node_modules and bench/apps/<slug>-fixed/node_modules.
    Check `df -h /` — stop and report if free space < 3 GB.
+
+This Mac has 8 GB of RAM: never run two dejabug runs or more than two dev servers at once.
 
 Be honest: a failed reproduction is a valid, useful result. Never adjust a result to look better.

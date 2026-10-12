@@ -187,6 +187,8 @@ def scan(frames: list[tuple[float, Path]]):
 
     cursor_pos: tuple[float, float] | None = None
     burst_start, burst_frames, quiet = None, [], 0
+    rest = 0                      # index of the last frame before the current burst
+    peak, peak_change = None, 0.0  # the burst frame most different from `rest`
 
     for i, (t, path) in enumerate(frames):
         if i:
@@ -197,13 +199,24 @@ def scan(frames: list[tuple[float, Path]]):
                 cursor_pos = moved
             if frac >= MIN_CHANGE:
                 if burst_start is None:
-                    burst_start = t
+                    burst_start, rest = t, i - 1
+                    peak, peak_change = None, 0.0
                 burst_frames.append((t, path))
+                change = split_change(grays[rest], grays[i])[0]
+                if change > peak_change:
+                    peak, peak_change = i, change
                 quiet = 0
             elif burst_start is not None:
                 quiet += 1
                 if quiet >= REST_FRAMES:
-                    if t - burst_start > LONG_BURST and len(burst_frames) > 2:
+                    # A menu or toast that appears and vanishes inside one burst
+                    # never makes it to a settle point. Keep the frame where the
+                    # screen was furthest from where it started, if it also
+                    # differs from where it ended up.
+                    if peak is not None and frames[peak][0] < t \
+                            and split_change(grays[peak], grays[i])[0] >= MIN_CHANGE * 10:
+                        keys.append(Keyframe(frames[peak][0], frames[peak][1], burst_start))
+                    elif t - burst_start > LONG_BURST and len(burst_frames) > 2:
                         mt, mp = burst_frames[len(burst_frames) // 2]
                         keys.append(Keyframe(mt, mp, burst_start))
                     keys.append(Keyframe(t, path, burst_start))
@@ -340,11 +353,13 @@ def detect_scroll(prev: Keyframe, cur: Keyframe) -> tuple[int, list[int]] | None
 def describe(keys: list[Keyframe], track) -> list[dict]:
     events: list[dict] = [{"t": 0.0, "type": "start", "screen": keys[0].path.stem,
                            "text": [b.text for b in keys[0].boxes][:15]}]
+    clicked: set[float] = set()  # one click per burst, even if it has two keyframes
     for prev, cur in zip(keys, keys[1:]):
         base = {"t": round(cur.t, 1), "screen": cur.path.stem}
         step: list[dict] = []
 
-        if cur.burst_start is not None:
+        if cur.burst_start is not None and cur.burst_start not in clicked:
+            clicked.add(cur.burst_start)
             hit = click_before(cur.burst_start, track)
             if hit:
                 step.append({**base, "t": round(cur.burst_start, 1), "type": "click",
@@ -455,6 +470,32 @@ def contact_sheet(keys: list[Keyframe], dest: Path, cols: int = 4) -> None:
     cv2.imwrite(str(dest), np.vstack(rows))
 
 
+def zoom_clicks(events: list[dict], frames: list[tuple[float, Path]], out: Path, half: int = 90) -> None:
+    """Save a close-up of every click, taken just before it happened. Icon
+    buttons, canvases and toolbars have no text for a label; the agent can
+    look at the close-up instead."""
+    zdir = out / "clicks"
+    if zdir.exists():
+        shutil.rmtree(zdir)
+    clicks = [e for e in events if e["type"] == "click"]
+    if not clicks:
+        return
+    zdir.mkdir()
+    times = [t for t, _ in frames]
+    for e in clicks:
+        i = max(0, min(range(len(times)), key=lambda k: abs(times[k] - e["t"])) - 1)
+        img = cv2.imread(str(frames[i][1]))
+        x, y = e["xy"]
+        H, W = img.shape[:2]
+        x0, y0 = max(0, x - half), max(0, y - half)
+        crop = img[y0:min(H, y + half), x0:min(W, x + half)].copy()
+        cv2.circle(crop, (x - x0, y - y0), 14, (0, 0, 255), 2)
+        crop = cv2.resize(crop, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        name = f"{e['t']:06.1f}s.png"
+        cv2.imwrite(str(zdir / name), crop)
+        e["zoom"] = f"clicks/{name}"
+
+
 def ingest(video: Path, out: Path) -> list[dict]:
     out.mkdir(parents=True, exist_ok=True)
     tmp = out / "_frames"
@@ -475,6 +516,7 @@ def ingest(video: Path, out: Path) -> list[dict]:
         k.boxes = ocr(dst, W, H)
 
     events = describe(keys, track)
+    zoom_clicks(events, frames, out)
     with open(out / "events.jsonl", "w") as f:
         for e in events:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")

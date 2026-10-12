@@ -1,0 +1,15 @@
+{
+  "id": "tldraw/tldraw#8828",
+  "slug": "tldraw-8828",
+  "buggy_version": "tldraw@5.2.0-next.999851279675",
+  "fixed_version": "tldraw@5.2.0-next.7b677d60c152",
+  "setup_notes": "Vite+React 19.2.1, full-screen <Tldraw/> in dark mode seeded with the shapes from the video (white squiggle, white arrow, blue solid rect, green rect). Versions bracket the merge of PR #8948 (2026-06-24); verified in dist that DefaultContextMenuContent's `if (!selectToolActive) return null` is present in the buggy build and gone in the fixed one. Sanity: Draw tool + right-click shows no menu on buggy, Paste/Copy as/Export as/Select all menu on fixed.",
+  "dejabug_verdict": "NOT_REPRODUCED (timeout)",
+  "coverage": 0.0,
+  "attempts_used": 2,
+  "seconds": 2520,
+  "fixed_build_exit": null,
+  "bug_inferred_by_dejabug": "Attempt 1: switching Draw(XL) -> Arrow resets the Size style to M; attempt 2: with the Arrow tool locked, the active tool silently switches to Text after drawing. Both tests exited 0 on the buggy build.",
+  "matches_real_bug": "no",
+  "notes": "First run was killed by laptop sleep (API socket closed, attempt 1 lost); restarted fresh under caffeinate. Restarted run: attempt 1 NOT_REPRODUCED (coverage 0.0, 0/7 clicks matched in replay); attempt 2's agent finished with a test exiting 0 but the run was stopped at ~42 min (past the 25-min limit) before dejabug wrote result.json. Neither attempt noticed the missing context menu on right-click."
+}

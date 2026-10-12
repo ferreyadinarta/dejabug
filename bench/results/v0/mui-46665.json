@@ -1,0 +1,15 @@
+{
+  "id": "mui/material-ui#46665",
+  "slug": "mui-46665",
+  "buggy_version": "@mui/material 7.3.0",
+  "fixed_version": "@mui/material 7.3.1 (revert PR #46672 merged 2025-08-06T08:11Z, 7.3.1 published 09:32Z)",
+  "setup_notes": "Vite+React 19 app, always-open Dialog with outlined Select labelled 'Age' (options 10..100, initial 10), copied from the video since the StackBlitz source was not fetchable. Sanity check: on 7.3.0 a Playwright click on the Select opens and immediately closes the menu; on 7.3.1 it stays open. Bug only appears when the pointer moves onto the Select in the same click. Hovering first, then clicking, opens the menu normally even on 7.3.0.",
+  "dejabug_verdict": "TIMEOUT (attempt 1: NOT_REPRODUCED; attempt 2 still writing at 25 min, killed)",
+  "coverage": "4/13 video events matched in attempt-1 replay",
+  "attempts_used": 2,
+  "seconds": 1506,
+  "fixed_build_exit": null,
+  "bug_inferred_by_dejabug": "Attempt 1 summary: 'Bug: None observable ... the Select correctly updates to each clicked option'; it read the video as a series of normal open/pick/cancel interactions.",
+  "matches_real_bug": "no",
+  "notes": "First run started 17:48 but the laptop went into clamshell sleep at 17:59 for about 2.7 h. That run was killed and restarted under caffeinate, and only the restart is timed. The attempt-1 agent said it 'compared static layout vs the fixed build at :5182', so a blind agent can find the other port. The bug needs a click without a prior hover. The harness's recorded clicks hover first, and the agent's own option clicks follow earlier mouse moves, so its tests may never trigger the bug in this setup."
+}
