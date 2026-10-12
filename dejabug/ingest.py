@@ -107,33 +107,93 @@ def split_change(prev: np.ndarray, cur: np.ndarray):
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
         if w <= CURSOR_MAX and h <= CURSOR_MAX:
-            cursor.append((x + w / 2, y + h / 2))
+            # (center_x, center_y, w, h); blobs are dilated by ~4 px each way
+            cursor.append((x + w / 2, y + h / 2, w - 4, h - 4))
         else:
             ui.append([x, y, w, h])
     ui_px = sum(int(np.count_nonzero(mask[y:y + h, x:x + w])) for x, y, w, h in ui)
     return ui_px / mask.size, cursor, ui
 
 
+def blink_spots(steps) -> set[tuple[int, int]]:
+    """Places where a small blob keeps reappearing without moving: the text caret
+    blinking, a spinner, a pulsing dot. The mouse pointer moves, so it never piles
+    up in one spot like this."""
+    counts: dict[tuple[int, int], int] = {}
+    for _, blobs, _ in steps:
+        for x, y, _, _ in blobs:
+            k = (round(x / 6), round(y / 6))
+            counts[k] = counts.get(k, 0) + 1
+    return {k for k, n in counts.items() if n >= 4}
+
+
+def is_pointer(blob, blinks: set[tuple[int, int]]) -> bool:
+    x, y, w, h = blob
+    if w <= 4 and h >= 8:
+        return False  # thin vertical line: a text caret
+    if (round(x / 6), round(y / 6)) in blinks:
+        return False
+    return 6 <= max(w, h) <= CURSOR_MAX
+
+
+PATCH = 14  # half-size of the patch compared when looking for the pointer
+
+
+def _patch(img: np.ndarray, x: float, y: float) -> np.ndarray | None:
+    x, y = int(round(x)), int(round(y))
+    if x < PATCH or y < PATCH or x + PATCH > img.shape[1] or y + PATCH > img.shape[0]:
+        return None
+    return img[y - PATCH:y + PATCH, x - PATCH:x + PATCH].astype(np.float32)
+
+
+def _same(a: np.ndarray, b: np.ndarray) -> float:
+    a, b = a - a.mean(), b - b.mean()
+    den = float(np.sqrt((a * a).sum() * (b * b).sum()))
+    return float((a * b).sum() / den) if den > 1e-6 else 0.0
+
+
+def pointer_move(prev, cur, blobs, last) -> tuple[float, float] | None:
+    """The pointer is a small thing that *travels*: the patch that vanished from
+    spot A reappears, unchanged, at spot B. A checkbox ticking or a caret blinking
+    changes in place and never forms such a pair."""
+    best, best_score = None, 0.75
+    for ax, ay in blobs:
+        before = _patch(prev, ax, ay)
+        if before is None:
+            continue
+        for bx, by in blobs:
+            if np.hypot(bx - ax, by - ay) < 6:
+                continue
+            after = _patch(cur, bx, by)
+            if after is None:
+                continue
+            score = _same(before, after)
+            if last is not None:  # prefer continuing the path we were on
+                score -= 0.0005 * np.hypot(ax - last[0], ay - last[1])
+            if score > best_score:
+                best, best_score = (bx, by), score
+    return best
+
+
 def scan(frames: list[tuple[float, Path]]):
-    """One pass over all frames: keyframes at each settle point, plus a cursor track."""
+    """Keyframes at each settle point, plus a track of the mouse pointer."""
     keys = [Keyframe(frames[0][0], frames[0][1])]
     track: list[tuple[float, float | None, float | None]] = []
-    prev = None
+
+    grays = [cv2.imread(str(p), cv2.IMREAD_GRAYSCALE) for _, p in frames]
+    steps = [(0.0, [], [])] + [split_change(a, b) for a, b in zip(grays, grays[1:])]
+    blinks = blink_spots(steps)
+
     cursor_pos: tuple[float, float] | None = None
     burst_start, burst_frames, quiet = None, [], 0
 
-    for t, path in frames:
-        cur = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
-        if prev is not None:
-            frac, blobs, _ = split_change(prev, cur)
-            # A moving cursor leaves two blobs: where it was and where it is.
-            if blobs:
-                if cursor_pos is None:
-                    cursor_pos = blobs[0]
-                else:
-                    far = [b for b in blobs if np.hypot(b[0] - cursor_pos[0], b[1] - cursor_pos[1]) > 6]
-                    if far:
-                        cursor_pos = min(far, key=lambda b: np.hypot(b[0] - cursor_pos[0], b[1] - cursor_pos[1]))
+    for i, (t, path) in enumerate(frames):
+        if i:
+            frac, blobs, _ = steps[i]
+            blobs = [b[:2] for b in blobs if is_pointer(b, blinks)]
+            moved = pointer_move(grays[i - 1], grays[i], blobs, cursor_pos)
+            if moved:
+                cursor_pos = moved
             if frac >= MIN_CHANGE:
                 if burst_start is None:
                     burst_start = t
@@ -148,7 +208,6 @@ def scan(frames: list[tuple[float, Path]]):
                     keys.append(Keyframe(t, path, burst_start))
                     burst_start, burst_frames, quiet = None, [], 0
         track.append((t, *(cursor_pos if cursor_pos else (None, None))))
-        prev = cur
 
     last_t, last_path = frames[-1]
     if keys[-1].path != last_path:
@@ -189,6 +248,12 @@ def nearest_label(x: float, y: float, boxes: list[Box], limit: float = 70) -> st
         d = float(np.hypot(dx, dy))
         if d < dist:
             best, dist = b.text, d
+    if best is None:
+        # Rows in lists and menus are clickable across their full width, while
+        # their text sits at the left. Fall back to text on the same row.
+        row = [b for b in boxes if abs(b.cy - y) < max(16, b.h * 1.6) and b.x < x]
+        if row:
+            best = max(row, key=lambda b: b.x).text
     return best
 
 
