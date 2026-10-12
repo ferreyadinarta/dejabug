@@ -8,16 +8,13 @@ scroll position so "Inception" stays visible under the cursor.
 Bug (video 3.8s -> 4.3s): list jumps back to the top ("The Shawshank Redemption").
 """
 import sys
-from playwright.sync_api import sync_playwright
+from dejabug.harness import open_page
 
 URL = "http://localhost:5173"
 
 
 def main() -> int:
-    with sync_playwright() as p:
-        browser = p.chromium.launch(channel="chrome")
-        page = browser.new_page(viewport={"width": 1280, "height": 800})
-        page.goto(URL)
+    with open_page(URL) as page:
 
         combo = page.get_by_role("combobox", name="Checkboxes")
         listbox = page.get_by_role("listbox")
@@ -65,7 +62,6 @@ def main() -> int:
         print(f"chip 'Inception' count: {chip_count}, aria-selected: {selected}")
         print(f"listbox scrollTop after click: {scroll_after}, Inception in view: {in_view_after}, "
               f"first visible option: {first_visible!r}")
-        browser.close()
 
     if chip_count != 1 or selected != "true":
         print("SETUP ERROR: Inception was not selected")

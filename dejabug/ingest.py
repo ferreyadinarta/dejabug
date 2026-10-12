@@ -36,6 +36,7 @@ CURSOR_MAX = 48         # change blobs no bigger than this (px) are treated as t
 REST_FRAMES = 2         # this many quiet frames in a row end a burst of change
 LONG_BURST = 1.5        # seconds; bursts longer than this also keep their middle frame
 MAX_EVENTS = 80
+PANEL_MIN = 4          # this many texts appearing/vanishing together = a list or panel
 MIN_CONF = 0.4
 
 ERROR_WORDS = re.compile(
@@ -239,6 +240,28 @@ def ocr(path: Path, W: int, H: int) -> list[Box]:
 
 # ---------------------------------------------------------------- events
 
+def column(boxes: list[Box]) -> tuple[list[Box], list[Box]]:
+    """Split texts into the largest left-aligned column (a list, menu or panel
+    appearing as one) and everything else."""
+    best: list[Box] = []
+    for b in boxes:
+        col = [o for o in boxes if abs(o.x - b.x) < 40]
+        if len(col) > len(best):
+            best = col
+    if len(best) < PANEL_MIN:
+        return [], boxes
+    best.sort(key=lambda b: b.y)
+    return best, [b for b in boxes if b not in best]
+
+
+def ocr_flicker(a: str, b: str) -> bool:
+    """'Part II' vs 'Part lI': the same text read slightly differently."""
+    if abs(len(a) - len(b)) > 1:
+        return False
+    import difflib
+    return difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio() >= 0.9
+
+
 def nearest_label(x: float, y: float, boxes: list[Box], limit: float = 70) -> str | None:
     best, dist = None, limit
     for b in boxes:
@@ -262,7 +285,7 @@ def click_before(t0: float, track) -> tuple[float, float] | None:
     window = [(x, y) for t, x, y in track if t0 - 0.6 <= t <= t0 and x is not None]
     if len(window) < 2:
         return None
-    xs, ys = [p[0] for p in window[-4:]], [p[1] for p in window[-4:]]
+    xs, ys = [p[0] for p in window[-3:]], [p[1] for p in window[-3:]]
     if max(xs) - min(xs) <= 8 and max(ys) - min(ys) <= 8:
         return xs[-1], ys[-1]
     return None
@@ -320,7 +343,7 @@ def describe(keys: list[Keyframe], track) -> list[dict]:
             if iou > 0.3:
                 matched.add(i)
                 old = prev.boxes[i].text
-                if old == nb.text:
+                if old == nb.text or ocr_flicker(old, nb.text):
                     continue
                 if URLISH.search(nb.text) and nb.y < 90:
                     step.append({**base, "type": "nav", "from": old, "to": nb.text})
@@ -338,16 +361,16 @@ def describe(keys: list[Keyframe], track) -> list[dict]:
         for b in errors:
             step.append({**base, "type": "error_shown", "xy": b.xy(), "text": b.text})
         appeared = [b for b in appeared if b not in errors]
-        if len(appeared) > 6:
-            step.append({**base, "type": "panel_opened", "count": len(appeared),
-                         "items": [b.text for b in sorted(appeared, key=lambda b: b.y)][:6]})
-        else:
-            step += [{**base, "type": "text_appeared", "xy": b.xy(), "text": b.text} for b in appeared]
-        if len(gone) > 6:
-            step.append({**base, "type": "panel_closed", "count": len(gone),
-                         "items": [b.text for b in sorted(gone, key=lambda b: b.y)][:6]})
-        else:
-            step += [{**base, "type": "text_gone", "text": b.text} for b in gone]
+        panel, loose = column(appeared)
+        if panel:
+            step.append({**base, "type": "panel_opened", "count": len(panel),
+                         "items": [b.text for b in panel][:6]})
+        step += [{**base, "type": "text_appeared", "xy": b.xy(), "text": b.text} for b in loose]
+        panel, loose = column(gone)
+        if panel:
+            step.append({**base, "type": "panel_closed", "count": len(panel),
+                         "items": [b.text for b in panel][:6]})
+        step += [{**base, "type": "text_gone", "text": b.text} for b in loose]
 
         # Many rows in one column changing at once is a list being replaced
         # (scrolled past, filtered, re-sorted), not a dozen separate edits.
