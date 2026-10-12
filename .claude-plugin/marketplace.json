@@ -1,0 +1,14 @@
+{
+  "name": "dejabug",
+  "description": "dejabug: turn bug screen recordings into verified failing Playwright tests.",
+  "owner": {
+    "name": "Ferrey Adinarta"
+  },
+  "plugins": [
+    {
+      "name": "dejabug",
+      "source": "./plugin",
+      "description": "Turn a screen recording of a bug into a Playwright test that fails the same way, checked against the video."
+    }
+  ]
+}

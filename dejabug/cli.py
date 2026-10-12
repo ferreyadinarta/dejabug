@@ -3,6 +3,7 @@
     dejabug run bug.mov --url http://localhost:3000     # the whole loop
     dejabug watch bug.mov                               # video -> event log + contact sheet
     dejabug verify out/bug/ repro_test.py               # does this test reproduce the video?
+    dejabug test repro_test.py                          # just run a repro test
 """
 
 from __future__ import annotations
@@ -36,6 +37,15 @@ def cmd_verify(a: argparse.Namespace) -> int:
 
     v = verify(a.evidence, a.test, a.url)
     return 0 if v["verdict"] == "REPRODUCED" else 1
+
+
+def cmd_test(a: argparse.Namespace) -> int:
+    """Run a repro test with the Python that has dejabug installed."""
+    import os
+    import subprocess
+
+    env = {**os.environ, **({"DEJABUG_URL": a.url} if a.url else {})}
+    return subprocess.run([sys.executable, str(a.test)], env=env).returncode
 
 
 def cmd_run(a: argparse.Namespace) -> int:
@@ -105,6 +115,11 @@ def main(argv: list[str] | None = None) -> int:
     v.add_argument("test", type=Path)
     v.add_argument("--url")
     v.set_defaults(fn=cmd_verify)
+
+    t = sub.add_parser("test", help="run a repro test (exit 1 = bug reproduced)")
+    t.add_argument("test", type=Path)
+    t.add_argument("--url", help="run against this URL instead of the one in the test")
+    t.set_defaults(fn=cmd_test)
 
     a = ap.parse_args(argv)
     return a.fn(a)

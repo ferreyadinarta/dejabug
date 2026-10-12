@@ -16,6 +16,7 @@ those, and describe what changed between them as text an agent can reason over.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import statistics
@@ -27,7 +28,6 @@ from pathlib import Path
 import cv2
 import imageio_ffmpeg
 import numpy as np
-from ocrmac import ocrmac
 
 SAMPLE_FPS = 10         # frames per second pulled from the video
 WIDTH = 1280            # frames are scaled to this width; all coordinates use this space
@@ -225,16 +225,40 @@ def clean(text: str) -> str:
     return re.sub(r"\s+", " ", LEADING_JUNK.sub("", text.strip()))
 
 
+_RAPID = None
+
+
+def _raw_ocr(path: Path, W: int, H: int):
+    """(text, confidence, x, y, w, h) in pixels, from Apple Vision on macOS or
+    RapidOCR everywhere else. DEJABUG_OCR=vision|rapid picks one explicitly."""
+    global _RAPID
+    engine = os.environ.get("DEJABUG_OCR") or ("vision" if sys.platform == "darwin" else "rapid")
+    if engine == "vision":
+        from ocrmac import ocrmac
+
+        for text, conf, (x, y, w, h) in ocrmac.OCR(str(path), recognition_level="accurate").recognize():
+            # Vision returns normalized coords with a bottom-left origin.
+            yield text, float(conf), x * W, (1 - y - h) * H, w * W, h * H
+        return
+    if _RAPID is None:
+        from rapidocr import RapidOCR
+
+        _RAPID = RapidOCR()
+    r = _RAPID(str(path))
+    for quad, text, conf in zip(r.boxes if r.boxes is not None else [], r.txts or [], r.scores or []):
+        xs, ys = [p[0] for p in quad], [p[1] for p in quad]
+        yield text, float(conf), min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)
+
+
 def ocr(path: Path, W: int, H: int) -> list[Box]:
     out = []
-    for text, conf, (x, y, w, h) in ocrmac.OCR(str(path), recognition_level="accurate").recognize():
+    for text, conf, x, y, w, h in _raw_ocr(path, W, H):
         text = clean(text)
         if conf < MIN_CONF or not text:
             continue
         if len(text) == 1 and not text.isdigit():
             continue  # stray glyphs: checkbox squares, icons, cursor carets
-        # Vision returns normalized coords with a bottom-left origin.
-        out.append(Box(text, float(conf), x * W, (1 - y - h) * H, w * W, h * H))
+        out.append(Box(text, conf, x, y, w, h))
     return out
 
 
@@ -276,7 +300,7 @@ def nearest_label(x: float, y: float, boxes: list[Box], limit: float = 70) -> st
         # their text sits at the left. Fall back to text on the same row.
         row = [b for b in boxes if abs(b.cy - y) < max(16, b.h * 1.6) and b.x < x]
         if row:
-            best = max(row, key=lambda b: b.x).text
+            best = min(row, key=lambda b: (abs(b.cy - y), -b.x)).text
     return best
 
 
