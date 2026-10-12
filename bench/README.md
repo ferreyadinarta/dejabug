@@ -37,3 +37,7 @@ By app: Excalidraw 3, tldraw 3, Docusaurus 2, MUI 2, Directus 2, Hoppscotch 2, C
 - outline#12552 and immich#31746 are labelled medium but have timing components.
 - Gitea, n8n and Cal.com produced no usable video issues with this search approach: their issue templates and attachment formats differ, and Cal.com's query returned 422. Searching those repos needs a different approach.
 - Medium-tier repos: Directus 11.x is easiest to run (single docker run with SQLite). Memos is a single container.
+
+## Status
+
+Runs stopped on 2026-10-12. Results from the first pass are in `results/v0/` (run on an extractor version before the flash-frame and click-close-up changes). App folders under `apps/` without a results file were set up but never run; their `node_modules` were deleted to save space (`npm install` restores them).

@@ -1,0 +1,12 @@
+{
+  "name": "tldraw-8828",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite" },
+  "dependencies": {
+    "tldraw": "5.2.0-next.999851279675",
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
+  },
+  "devDependencies": { "@vitejs/plugin-react": "4.7.0", "vite": "6.3.5" }
+}

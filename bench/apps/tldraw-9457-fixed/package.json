@@ -1,0 +1,12 @@
+{
+  "name": "tldraw-9457-fixed",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite" },
+  "dependencies": {
+    "tldraw": "5.3.0-next.d2119fd1c291",
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
+  },
+  "devDependencies": { "@vitejs/plugin-react": "4.7.0", "vite": "6.3.5" }
+}

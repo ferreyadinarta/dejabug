@@ -12,7 +12,12 @@ Drop in a screen recording of a bug. Get back a Playwright test that fails the s
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-<!-- DEMO GIF: original video | terminal | replay, ~20 s -->
+> **Status: experiment.** The full loop works end to end on a real MUI bug (below). On a wider benchmark it is not reliable yet; see [Results so far](#results-so-far). I've stopped active work on it, and the code stays here for anyone who wants to pick it up.
+
+<p align="center">
+  <img src="docs/mui-47203-strip.png" width="640" alt="Frames from the user's bug video next to frames from dejabug's replay of the generated test">
+  <br><sub>Left: the user's recording of <a href="https://github.com/mui/material-ui/issues/47203">mui/material-ui#47203</a>. Right: the replay of the test dejabug wrote for it, matched moment by moment.</sub>
+</p>
 
 ```
 $ dejabug run bug.mp4 --url http://localhost:5173
@@ -97,18 +102,32 @@ Any agent CLI that can read files, write a file and run a command works. `{promp
 DEJABUG_AGENT='codex exec --full-auto {prompt}' dejabug run bug.mov --url http://localhost:3000
 ```
 
-## Benchmark
+## Results so far
 
-<!-- BENCHMARK TABLE: N real GitHub issues with bug videos, agent blind to the issue text -->
+Each case is a closed GitHub issue with a screen recording attached. The app is set up at the last version with the bug and the first version with the fix, and dejabug runs blind: the agent sees only the extracted video evidence, never the issue. A case counts as reproduced when verify says `REPRODUCED` on the buggy build and the same test passes on the fixed build.
 
-Each case is a closed GitHub issue with a screen recording attached. The app is set up at the last version with the bug and the first version with the fix. dejabug runs blind: the agent sees only the extracted video evidence, never the issue. A case counts as reproduced when verify says `REPRODUCED` on the buggy build and the same test passes on the fixed build.
+| Issue | Bug | Result |
+|---|---|---|
+| [mui/material-ui#47203](https://github.com/mui/material-ui/issues/47203) | Autocomplete list scrolls back to the top after selecting an option | Reproduced on the first attempt in 173 s; the test fails on 7.3.7 and passes on 7.3.8 |
+| [mui/material-ui#46665](https://github.com/mui/material-ui/issues/46665) | Select menu inside a Dialog opens and closes immediately | Not reproduced. The menu's brief flash was dropped by the extractor, so the agent saw no bug. The extractor now keeps such frames, but this case hasn't been rerun |
+| [tldraw/tldraw#8828](https://github.com/tldraw/tldraw/issues/8828) | Right-click outside the selection shows no context menu | Not reproduced. Clicks on a canvas and on icon buttons have no text to label them, and a right-click looks like a left-click on video. The agent guessed a different bug |
+| [excalidraw/excalidraw#10840](https://github.com/excalidraw/excalidraw/issues/10840) | After using the laser pointer in view mode, leaving view mode switches the tool to the hand tool | Timed out (the run happened on a laptop that ran out of memory and went to sleep) |
+
+The full set of 20 issues, including ones that need a backend, a login or seeded data, is in [`bench/issues.json`](bench/issues.json).
+
+What I learned from these runs:
+
+- Bugs that are visible in a settled screen (a list in the wrong place, the wrong text) work well.
+- Bugs that are a brief flash, an absence (a menu that should appear and doesn't), or happen on a canvas are much harder to get from video.
+- Verifying the replay against the video matters. In the tldraw case, verify found none of the video's 7 clicks in the replay, which made it obvious the agent had tested something other than what the user recorded.
 
 ## Limits
 
-- Web apps only, for now.
+- Web apps only. The replay runs in a browser through Playwright.
+- Right-clicks, drags and clicks on canvases or icon-only buttons are hard to read from video.
 - The app has to run somewhere dejabug can reach, in the state the video starts from. Bugs that depend on a specific account or production data need that data seeded first.
 - Tiny, blurry or heavily cropped recordings give the agent less to go on.
 
 ## License
 
-MIT
+MIT. Built by [Ferrey Adinarta](https://github.com/ferreyadinarta).
