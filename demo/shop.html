@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Hoodie Shop</title>
+<style>
+ body{font-family:-apple-system,Helvetica,Arial,sans-serif;margin:0;background:#f6f6f4;color:#111}
+ header{background:#111;color:#fff;padding:18px 32px;font-size:22px;font-weight:700}
+ main{display:flex;gap:40px;padding:40px 32px}
+ .card,.cart{background:#fff;border-radius:12px;padding:24px;box-shadow:0 1px 3px #0002}
+ .card{width:320px}.cart{width:380px}
+ button{font-size:18px;padding:10px 18px;border:0;border-radius:8px;background:#2f6fed;color:#fff;cursor:pointer}
+ input{font-size:18px;padding:9px;border:1px solid #bbb;border-radius:8px;width:180px}
+ .row{display:flex;justify-content:space-between;font-size:18px;margin:10px 0}
+ .toast{position:fixed;bottom:30px;right:30px;padding:16px 22px;border-radius:10px;font-size:18px;color:#fff;display:none}
+</style></head>
+<body>
+<header>Hoodie Shop</header>
+<main>
+ <div class="card"><h2>Classic Hoodie</h2><p style="font-size:18px">Rp 250.000</p>
+  <button id="add">Add to cart</button></div>
+ <div class="cart"><h2>Your cart</h2>
+  <div class="row"><span>Items</span><span id="count">0</span></div>
+  <div class="row"><span>Total</span><span id="total">Rp 0</span></div>
+  <div class="row"><input id="code" placeholder="Coupon code"><button id="apply">Apply</button></div>
+ </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+ let items=0; const price=250000;
+ const fmt=n=>'Rp '+n.toLocaleString('id-ID');
+ function render(){count.textContent=items; total.textContent=fmt(items*price);}
+ add.onclick=()=>{items++;render();};
+ apply.onclick=()=>{
+  const c=code.value.trim();
+  // BUG: the discount table is keyed lowercase, so real codes never match.
+  const discounts={save10:0.10};
+  const d=discounts[c];
+  toast.style.display='block';
+  if(d===undefined){toast.style.background='#c0392b';toast.textContent='Something went wrong';}
+  else{toast.style.background='#27ae60';toast.textContent='Coupon applied';total.textContent=fmt(items*price*(1-d));}
+ };
+</script></body></html>
