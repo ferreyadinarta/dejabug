@@ -4,7 +4,7 @@ You are running the dejabug benchmark for a list of GitHub issues. dejabug turns
 screen recording into a failing Playwright test. Your job per issue is to SET UP the
 app at the buggy and the fixed version, then let dejabug run BLIND, then record results.
 
-Repo: /Users/mkpmobile/Documents/Ferrey Code/dejabug   (run commands from there)
+Run all commands from the repository root.
 Issue data: bench/issues.json (fields: id, url, video_urls, steps_to_reproduce, fix, ...)
 Reference setup (copy its shape): bench/apps/mui-47203 (buggy) and bench/apps/mui-47203-fixed
 
