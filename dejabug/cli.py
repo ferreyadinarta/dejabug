@@ -39,7 +39,8 @@ def cmd_watch(a: argparse.Namespace) -> int:
 
     video, out = _input(a)
     events = ingest(video, out)
-    _say(f"{len(events)} events -> {out / 'events.jsonl'}\ncontact sheet -> {out / 'contact_sheet.png'}")
+    _say(f"{len(events)} events -> {out / 'events.jsonl'}\nfilm (every 0.5 s, changes boxed) -> {out / 'film'}\n"
+         f"contact sheet -> {out / 'contact_sheet.png'}")
     return 0
 
 
@@ -205,7 +206,7 @@ def main(argv: list[str] | None = None) -> int:
                    help="forbid the agent from looking the bug up (for benchmarks)")
     r.set_defaults(fn=cmd_run)
 
-    w = sub.add_parser("watch", help="video -> event log + contact sheet")
+    w = sub.add_parser("watch", help="video -> film, event log and contact sheet (evidence only)")
     w.add_argument("video", help="video file or GitHub issue link")
     w.add_argument("-o", "--out", type=Path)
     w.set_defaults(fn=cmd_watch)

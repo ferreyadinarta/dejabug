@@ -11,7 +11,7 @@ The user has a recording of a bug. You turn it into a Playwright test that perfo
 
 Run `dejabug doctor`. If `dejabug` isn't installed, install it with `pip install 'dejabug[run]'` (or prefix every command with `uvx --from 'dejabug[run]'` if uv is available). Doctor prints one exact fix for anything else that's missing; apply it and run doctor again.
 
-For written steps only, `pip install dejabug` is enough and no app is needed: `dejabug steps <video or GitHub issue link>`.
+For written steps only, `pip install dejabug` is enough and no app is needed. Run `dejabug watch <video or GitHub issue link> -o dejabug-out/<name>`, read the evidence as in step 1, and write the steps yourself: one numbered step per user action with its time, only actions you can see evidence for, unsure ones marked "not sure", then the bug moment in one line. Stop there.
 
 You also need the app from the video running locally for test mode. Get its URL from the user, or find the project's dev script and start it.
 
@@ -22,8 +22,9 @@ dejabug watch <video> -o dejabug-out/<name>
 ```
 
 This writes, into the output folder:
-- `contact_sheet.png`: every keyframe with timestamps. **Look at it first.**
-- `events.jsonl`: one line per moment. Types:
+- `film/*.jpg`: the recording every half second, 4 frames per sheet, with what changed boxed in red and the pointer ringed in yellow. **Read every sheet first, in order.** Typing, keyboard shortcuts and drags only show up here. `film/frames/<time>s.jpg` are the same frames at full size for reading small text.
+- `contact_sheet.png`: every keyframe (where the screen settled) with timestamps.
+- `events.jsonl`: one line per moment, detected automatically. Hints, not truth: the pointer is often hidden, and keys and drags are missed. Types:
   - `click` (`label` = text nearest the resting pointer)
   - `type`, `text_appeared`, `text_gone`, `text_changed`
   - `panel_opened` / `panel_closed` (a list or menu appearing or vanishing as one)
