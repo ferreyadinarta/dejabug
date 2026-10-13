@@ -70,7 +70,7 @@ def cmd_run(a: argparse.Namespace) -> int:
         code, usage = run_agent(prompt, out, out / f"agent_attempt{attempt}.log", a.model, left)
         for k, v in usage.items():
             spent[k] += v
-        if code != 0 or not test.exists():
+        if not test.exists():
             _say(f"          {RED}agent did not produce a test (exit {code}); see agent_attempt{attempt}.log{RESET}")
             continue
         _say(f"          {DIM}{test}{RESET}\n")
