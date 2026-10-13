@@ -12,3 +12,6 @@ docs/demo/
 bench/benchmark/videos/
 bench/benchmark/frames/
 bench/benchmark/out/
+bench/devset/videos/
+bench/devset/frames/
+bench/devset/out/

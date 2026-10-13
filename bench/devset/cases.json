@@ -1,0 +1,82 @@
+[
+ {
+  "id": "TypeCellOS_BlockNote-2594",
+  "url": "https://github.com/TypeCellOS/BlockNote/issues/2594",
+  "video_file": "TypeCellOS_BlockNote-2594.mp4",
+  "seconds": 22.3,
+  "app_type": "rich-text editor",
+  "reference_file": "reference/TypeCellOS_BlockNote-2594.md"
+ },
+ {
+  "id": "ueberdosis_tiptap-7731",
+  "url": "https://github.com/ueberdosis/tiptap/issues/7731",
+  "video_file": "ueberdosis_tiptap-7731.mov",
+  "seconds": 12.4,
+  "app_type": "rich-text editor",
+  "reference_file": "reference/ueberdosis_tiptap-7731.md"
+ },
+ {
+  "id": "ueberdosis_tiptap-7122",
+  "url": "https://github.com/ueberdosis/tiptap/issues/7122",
+  "video_file": "ueberdosis_tiptap-7122.webm",
+  "seconds": 43.7,
+  "app_type": "rich-text editor",
+  "reference_file": "reference/ueberdosis_tiptap-7122.md"
+ },
+ {
+  "id": "tldraw_tldraw-9339",
+  "url": "https://github.com/tldraw/tldraw/issues/9339",
+  "video_file": "tldraw_tldraw-9339.mov",
+  "seconds": 28.8,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/tldraw_tldraw-9339.md"
+ },
+ {
+  "id": "tldraw_tldraw-9457",
+  "url": "https://github.com/tldraw/tldraw/issues/9457",
+  "video_file": "tldraw_tldraw-9457.mov",
+  "seconds": 9.5,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/tldraw_tldraw-9457.md"
+ },
+ {
+  "id": "adobe_react-spectrum-9448",
+  "url": "https://github.com/adobe/react-spectrum/issues/9448",
+  "video_file": "adobe_react-spectrum-9448.mov",
+  "seconds": 20.8,
+  "app_type": "form/list/menu",
+  "reference_file": "reference/adobe_react-spectrum-9448.md"
+ },
+ {
+  "id": "facebook_lexical-8738",
+  "url": "https://github.com/facebook/lexical/issues/8738",
+  "video_file": "facebook_lexical-8738.mov",
+  "seconds": 10.4,
+  "app_type": "rich-text editor",
+  "reference_file": "reference/facebook_lexical-8738.md"
+ },
+ {
+  "id": "adobe_react-spectrum-10092",
+  "url": "https://github.com/adobe/react-spectrum/issues/10092",
+  "video_file": "adobe_react-spectrum-10092.mov",
+  "seconds": 5.4,
+  "app_type": "other",
+  "reference_file": "reference/adobe_react-spectrum-10092.md"
+ },
+ {
+  "id": "tldraw_tldraw-9392",
+  "url": "https://github.com/tldraw/tldraw/issues/9392",
+  "video_file": "tldraw_tldraw-9392.mov",
+  "seconds": 65.7,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/tldraw_tldraw-9392.md"
+ },
+ {
+  "id": "tldraw_tldraw-9221",
+  "url": "https://github.com/tldraw/tldraw/issues/9221",
+  "video_file": "tldraw_tldraw-9221.mov",
+  "seconds": 13.6,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/tldraw_tldraw-9221.md"
+ }
+]
