@@ -99,11 +99,11 @@ dejabug verify dejabug-out/bug dejabug-out/bug/repro_test.py
 dejabug test dejabug-out/bug/repro_test.py --url http://localhost:3001   # exit 1 = bug still there
 ```
 
-Every command also takes a GitHub issue link instead of a file. Repro tests exit `1` when the bug happens, `0` when the correct behaviour happens and `2` when they couldn't reach the state in the video, so they double as regression tests once the bug is fixed.
+Every command also takes a link to an issue in a public GitHub repo instead of a file (private repos aren't supported yet). Repro tests exit `1` when the bug happens, `0` when the correct behaviour happens and `2` when they couldn't reach the state in the video, so they double as regression tests once the bug is fixed.
 
 ### Other agents
 
-Any agent CLI that can read files, write a file and run a command works. `{prompt}` is replaced with the instructions, `{prompt_file}` with the path of a file holding them. For example:
+Steps mode is a plain command and works anywhere. Test mode runs its agent step with Claude Code; other agent CLIs can be plugged in, but haven't been tested yet. Any agent CLI that can read files, write a file and run a command should work. `{prompt}` is replaced with the instructions, `{prompt_file}` with the path of a file holding them. For example:
 
 ```bash
 DEJABUG_AGENT='codex exec --full-auto {prompt}' dejabug run bug.mov --url http://localhost:3000

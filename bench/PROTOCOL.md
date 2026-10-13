@@ -1,6 +1,6 @@
 # Benchmark protocol
 
-Written and committed on 2026-10-13, before any benchmark run. Results are judged only by the rules below.
+Written and committed on 2026-10-13, before any benchmark run. The steps-mode section was added on 2026-10-13, before any steps-mode grading. Results are judged only by the rules below.
 
 ## Sample
 
@@ -40,3 +40,16 @@ A case is a **success** only if both hold:
 
 - Success rate = successes / 20, published whatever it is, with per-case cost, time and outcome.
 - With 20 cases the uncertainty is wide: a measured 50% is consistent with roughly 30% to 70%. Decisions treat the result as a rough signal.
+
+## Steps mode accuracy (same 20 videos)
+
+Steps mode is graded on the same 20 cases, with no app involved.
+
+1. **Reference first.** For each video, a grader writes the reference list of user actions (click, type, hover, right-click, drag, in order, each with the visible label) and the moment the bug shows, from the video and its keyframes, before seeing dejabug's output. The issue text may be used to understand the video, not to add actions the video doesn't show.
+2. **Run** `dejabug steps <video>` with default settings on dejabug's version tagged when the benchmark starts.
+3. **Score** each case:
+   - click precision: listed actions that match a reference action (same kind, same target, same order) / all listed actions,
+   - recall: reference actions found / all reference actions,
+   - bug moment: whether the steps contain a note at the moment the bug shows (yes / no).
+4. **Report** the median precision and recall across the 20 cases, the bug-moment hit rate, and the per-case scores.
+5. The founder re-grades 5 cases, picked at random after scoring, by hand. Disagreements are reported, not resolved quietly.
