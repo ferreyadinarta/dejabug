@@ -65,6 +65,10 @@ def checks() -> list[tuple[str, str, str, str]]:
     gh_ok = _github()
     rows.append(("steps", OK if gh_ok else OPTIONAL, "GitHub reachable (issue links)",
                  "" if gh_ok else "check your network; local video files still work"))
+    model_ok = bool(shutil.which("claude") or os.environ.get("ANTHROPIC_API_KEY"))
+    rows.append(("steps", OK if model_ok else OPTIONAL, "model for accurate steps (Claude Code or ANTHROPIC_API_KEY)",
+                 "" if model_ok else "install Claude Code (https://claude.com/claude-code) or set ANTHROPIC_API_KEY; "
+                                     "without it steps come from simple rules"))
     pw_ok = _has("playwright")
     rows.append(("run", OK if pw_ok else OPTIONAL, "Playwright (test mode)",
                  "" if pw_ok else "pip install 'dejabug[run]'"))
@@ -79,8 +83,9 @@ def checks() -> list[tuple[str, str, str, str]]:
 
 
 def ready(rows, area: str) -> bool:
-    """Every check in `area` passed, except the optional GitHub one (local files still work)."""
-    return all(status == OK for a, status, what, _ in rows if a == area and "GitHub" not in what)
+    """Every check in `area` passed, except the optional GitHub and model ones."""
+    return all(status == OK for a, status, what, _ in rows
+               if a == area and "GitHub" not in what and not what.startswith("model"))
 
 
 def main() -> int:

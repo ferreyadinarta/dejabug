@@ -68,10 +68,7 @@ def _ai_steps(a: argparse.Namespace, out: Path, video: Path) -> str | None:
     target = out / "steps.json"
     target.unlink(missing_ok=True)
     custom = os.environ.get("DEJABUG_AGENT")
-    if not custom and not vision.available():
-        _say(f"{RED}--ai needs Claude Code (https://claude.com/claude-code) or ANTHROPIC_API_KEY{RESET}")
-        return None
-    _say(f"{DIM}a model is reading the film...{RESET}")
+    _say(f"{DIM}{a.model} is reading the film (--no-ai to skip)...{RESET}")
     if custom:  # other agents read the files themselves
         code, usage = run_agent(build_steps_prompt(out, target, _context(a, video)), out, out / "agent_steps.log",
                                 a.model, a.max_cost)
@@ -94,7 +91,13 @@ def cmd_steps(a: argparse.Namespace) -> int:
     video, out = _input(a)
     if not (a.reuse and (out / "events.jsonl").exists() and (out / "film").exists()):
         ingest(video, out)
-    if a.ai:
+    from dejabug import vision
+
+    model_ready = bool(os.environ.get("DEJABUG_AGENT")) or vision.available()
+    if a.ai and not model_ready:
+        _say(f"{RED}--ai needs Claude Code (https://claude.com/claude-code) or ANTHROPIC_API_KEY{RESET}")
+        return 1
+    if (a.ai or model_ready) and not a.no_ai:
         md = _ai_steps(a, out, video)
         if md is None:
             return 1
@@ -102,7 +105,10 @@ def cmd_steps(a: argparse.Namespace) -> int:
         md = markdown(load(out), a.video)
     (out / "steps.md").write_text(md, encoding="utf-8")
     _say(md)
-    _say(f"{DIM}saved to {out / 'steps.md'}; close-ups of each click are in {out / 'clicks'}{RESET}")
+    _say(f"{DIM}saved to {out / 'steps.md'}{RESET}")
+    if not model_ready and not a.no_ai:
+        _say(f"{DIM}these steps come from simple rules and miss keys, drags and hidden pointers. Install Claude Code or "
+             f"set ANTHROPIC_API_KEY and a model will write them (much more accurate, about $0.50 a video).{RESET}")
     return 0
 
 
@@ -231,7 +237,8 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("steps", help="video -> written steps to reproduce (no app needed)")
     s.add_argument("video", help="video file or GitHub issue link")
     s.add_argument("-o", "--out", type=Path)
-    s.add_argument("--ai", action="store_true", help="have a model write the steps from the evidence (uses Claude Code)")
+    s.add_argument("--ai", action="store_true", help="require a model (the default when Claude Code or ANTHROPIC_API_KEY is found)")
+    s.add_argument("--no-ai", action="store_true", help="rule-based steps only: free, offline, less accurate")
     s.add_argument("--note", help="anything the reporter said about the bug")
     s.add_argument("--reuse", action="store_true", help="reuse what an earlier run already extracted into the output folder")
     s.add_argument("--model", default=os.environ.get("DEJABUG_STEPS_MODEL", "opus"))
