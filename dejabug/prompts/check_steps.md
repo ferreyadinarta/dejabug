@@ -11,5 +11,5 @@ Write one corrected list. Check every step against the frames, one by one:
 Add a step only when an action is clearly visible and missing. Then check the bug: it should be the first moment the app does something wrong right after a user action, described by what is visibly wrong.
 
 {drafts}
-
+{context}
 Reply with only the corrected JSON, same format.

@@ -84,7 +84,8 @@ def _ask(content: list[dict], model: str) -> tuple[str, dict]:
     return _via_claude_code(content, model) if shutil.which("claude") else _via_api(content, model)
 
 
-def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", drafts: int = 1) -> dict:
+def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", drafts: int = 1,
+                context: str = "") -> dict:
     """Draft the steps from the film, then a checking call corrects the draft against the frames."""
     content = _content(prompt, evidence)
     with ThreadPoolExecutor(drafts) as pool:
@@ -106,6 +107,7 @@ def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", 
     if len(texts) > 1:  # more drafts: agreement is a signal
         template = template.replace("Write one corrected list.", "Write one corrected list. Steps the drafts agree on are "
                                     "likely right; steps only one draft has need clear support in the frames.")
+    template = template.replace("{context}", f"\n{context}\n" if context else "")
     text, more = _ask(_content(template.replace("{drafts}", joined), evidence, events=False), model)
     _save(text, target)
     return {k: usage.get(k, 0) + more.get(k, 0) for k in usage}
