@@ -13,7 +13,7 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-> **Status: early.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) showed that the first version of `dejabug steps` missed most of what users do (it found 9 of 175 actions). Steps are now written by a model that watches the whole recording. On a separate set of 10 development videos, in two runs, it found the median video's actions about 63% of the time, and 64% to 71% of the steps it listed were right. The benchmark will be rerun once, on the same 20 videos, before release. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
+> **Status: early.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) showed that the first version of `dejabug steps` missed most of what users do (it found 9 of 175 actions). Steps are now written by a model that watches the whole recording. On a separate set of 10 development videos, in two runs, it found 63% of the actions in the median video, and 64% to 71% of all the steps it listed were right. The benchmark will be rerun once, on the same 20 videos, before release. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
 
 ## Steps to reproduce, from a bug video
 
