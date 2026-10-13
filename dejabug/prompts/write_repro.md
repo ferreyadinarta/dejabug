@@ -46,7 +46,7 @@ if __name__ == "__main__":
 ```
 
 Rules for the test:
-- Use `open_page` from `dejabug.harness`. Don't launch browsers yourself: the harness records the replay that dejabug compares with the video.
+- Use `open_page` from `dejabug.harness`. If the app needs a login, the harness already starts logged in when the user passed `--storage-state`. Don't launch browsers yourself: the harness records the replay that dejabug compares with the video.
 - Prefer robust locators (`get_by_role`, `get_by_text`, `get_by_label`) using the labels you see in the video.
 - Reproduce **every** step the video shows, in order, even ones that look pointless: a menu opened, closed and opened again (`panel_opened`, `panel_closed`, `panel_opened`), a scroll before a click, a second click. Bugs often depend on exactly those steps, so never simplify the sequence.
 - The assertion must check the **correct** behaviour, so it fails while the bug exists and passes once the bug is fixed. Never assert the buggy behaviour.

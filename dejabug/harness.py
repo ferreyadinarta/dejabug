@@ -80,6 +80,8 @@ def open_page(url: str, width: int = 1280, height: int = 800, slow_mo: int = 120
         browser = p.chromium.launch(channel=os.environ.get("DEJABUG_BROWSER", "chrome"),
                                     slow_mo=slow_mo if record_to else 0)
         opts = {"viewport": {"width": width, "height": height}}
+        if os.environ.get("DEJABUG_STORAGE_STATE"):
+            opts["storage_state"] = os.environ["DEJABUG_STORAGE_STATE"]  # start logged in
         if record_to:
             opts |= {"record_video_dir": tmp, "record_video_size": {"width": width, "height": height}}
         ctx = browser.new_context(**opts)

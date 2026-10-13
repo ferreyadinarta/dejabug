@@ -130,7 +130,12 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--url", help="run against this URL instead of the one in the test")
     t.set_defaults(fn=cmd_test)
 
+    for p in (r, v, t):
+        p.add_argument("--storage-state", type=Path,
+                       help="Playwright storage state file (cookies, local storage) so tests start logged in")
     a = ap.parse_args(argv)
+    if a.storage_state:
+        os.environ["DEJABUG_STORAGE_STATE"] = str(a.storage_state.resolve())
     return a.fn(a)
 
 
