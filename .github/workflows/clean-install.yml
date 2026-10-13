@@ -1,0 +1,36 @@
+name: Clean install
+
+# A stranger's first run on a fresh machine: plain pip, no uv, nothing preinstalled by us.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  steps-mode:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install (steps mode only)
+        run: |
+          python -m venv fresh
+          ${{ runner.os == 'Windows' && 'fresh\Scripts\python' || 'fresh/bin/python' }} -m pip install --quiet .
+      - name: Doctor
+        run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} doctor
+      - name: Steps from a local video
+        run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} steps demo/bug.webm -o out-local
+      - name: Steps from a GitHub issue link
+        run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} steps https://github.com/mui/material-ui/issues/47203 -o out-issue
+      - name: Test mode says how to add Playwright
+        shell: bash
+        run: |
+          out=$(${{ runner.os == 'Windows' && 'fresh/Scripts/dejabug' || 'fresh/bin/dejabug' }} run demo/bug.webm --url http://localhost:1 2>&1 || true)
+          echo "$out"
+          echo "$out" | grep -q "dejabug\[run\]"
