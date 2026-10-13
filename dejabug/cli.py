@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -48,7 +49,16 @@ def _ai_steps(a: argparse.Namespace, out: Path) -> str | None:
 
     target = out / "steps.json"
     target.unlink(missing_ok=True)
+    use_cli = bool(shutil.which("claude") or os.environ.get("DEJABUG_AGENT"))
+    if not use_cli and not os.environ.get("ANTHROPIC_API_KEY"):
+        _say(f"{RED}--ai needs Claude Code (https://claude.com/claude-code) or ANTHROPIC_API_KEY{RESET}")
+        return None
     _say(f"{DIM}a model is reading the evidence...{RESET}")
+    if not use_cli:
+        from dejabug.vision import write_steps_api
+        usage = write_steps_api(build_steps_prompt(out, target, a.note or "", api=True), out, target, a.model)
+        _say(f"{DIM}model: {usage['input_tokens']} tokens in, {usage['output_tokens']} out{RESET}")
+        return ai_markdown(json.loads(target.read_text(encoding="utf-8")), a.video)
     code, usage = run_agent(build_steps_prompt(out, target, a.note or ""), out, out / "agent_steps.log", a.model,
                             a.max_cost)
     if not target.exists():

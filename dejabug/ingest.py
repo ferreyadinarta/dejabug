@@ -544,16 +544,60 @@ def merge_typing(events: list[dict]) -> list[dict]:
 
 # ---------------------------------------------------------------- output
 
-def timeline_sheets(frames: list[tuple[float, Path]], dest: Path, per_second: int = 1, per_sheet: int = 12) -> None:
-    """One frame per second in grids, for changes that never settle (typing, dragging)."""
+def _changed_boxes(a: np.ndarray, b: np.ndarray, limit: int = 6) -> list[tuple[int, int, int, int]]:
+    """Largest regions that changed between two frames; small ones only when shaped like text, not a pointer or caret."""
+    _, mask = cv2.threshold(cv2.absdiff(a, b), 25, 255, cv2.THRESH_BINARY)
+    mask = cv2.dilate(mask, np.ones((9, 9), np.uint8))
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    boxes = [cv2.boundingRect(c) for c in contours]
+    boxes = [bx for bx in boxes if bx[2] > CURSOR_MAX or bx[3] > CURSOR_MAX or bx[2] >= 1.5 * bx[3]]
+    return sorted(boxes, key=lambda bx: -bx[2] * bx[3])[:limit]
+
+
+def film(frames: list[tuple[float, Path]], track, dest: Path, per_sheet: int = 4, thumb: int = 780) -> None:
+    """Frames every half second with what changed boxed in red and the pointer ringed in yellow.
+
+    Sheets of 4 for reading the sequence; full-size JPEGs in film/frames/ for reading small text.
+    Stretches where nothing changed are skipped."""
     if dest.exists():
         shutil.rmtree(dest)
-    dest.mkdir()
-    step = max(1, round(SAMPLE_FPS / per_second))
-    picked = frames[::step]
+    (dest / "frames").mkdir(parents=True)
+    duration = frames[-1][0]
+    fps = 2 if duration <= 90 else 1
+    step = max(1, round(SAMPLE_FPS / fps))
+    pointer = {round(t, 1): (x, y) for t, x, y in track if x is not None}
+    picked, prev = [], None
+    for i in range(0, len(frames), step):
+        t, path = frames[i]
+        img = cv2.imread(str(path))
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        boxes = _changed_boxes(prev, gray) if prev is not None else []
+        moved = prev is not None and bool(cv2.countNonZero(cv2.threshold(cv2.absdiff(prev, gray), 25, 255,
+                                                                          cv2.THRESH_BINARY)[1]))
+        prev = gray
+        if picked and not moved and i + step < len(frames):
+            continue
+        cv2.imwrite(str(dest / "frames" / f"{t:06.1f}s.jpg"), img, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        marked = img.copy()
+        for x, y, w, h in boxes:
+            cv2.rectangle(marked, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        if round(t, 1) in pointer:
+            px, py = pointer[round(t, 1)]
+            cv2.circle(marked, (int(px), int(py)), 16, (0, 220, 255), 3)
+        picked.append((t, marked))
     for n in range(0, len(picked), per_sheet):
-        chunk = [Keyframe(t, path) for t, path in picked[n:n + per_sheet]]
-        contact_sheet(chunk, dest / f"{chunk[0].t:06.1f}s-{chunk[-1].t:06.1f}s.png", cols=4)
+        chunk = picked[n:n + per_sheet]
+        thumbs = []
+        for t, img in chunk:
+            img = cv2.resize(img, (thumb, int(img.shape[0] * thumb / img.shape[1])))
+            cv2.rectangle(img, (0, 0), (120, 30), (0, 0, 0), -1)
+            cv2.putText(img, f"{t:5.1f}s", (6, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            thumbs.append(cv2.copyMakeBorder(img, 4, 4, 4, 4, cv2.BORDER_CONSTANT, value=(255, 255, 255)))
+        while len(thumbs) % 2:
+            thumbs.append(np.full_like(thumbs[0], 255))
+        rows = [np.hstack(thumbs[i:i + 2]) for i in range(0, len(thumbs), 2)]
+        cv2.imwrite(str(dest / f"{chunk[0][0]:06.1f}s-{chunk[-1][0]:06.1f}s.jpg"), np.vstack(rows),
+                    [cv2.IMWRITE_JPEG_QUALITY, 85])
 
 
 def contact_sheet(keys: list[Keyframe], dest: Path, cols: int = 4) -> None:
@@ -712,7 +756,7 @@ def ingest(video: Path, out: Path) -> list[dict]:
             if x is not None:
                 f.write(json.dumps({"t": round(t, 1), "xy": [round(x), round(y)]}) + "\n")
     contact_sheet(keys, out / "contact_sheet.png")
-    timeline_sheets(frames, out / "timeline")
+    film(frames, track, out / "film")
     shutil.rmtree(tmp)
     print(f"{len(frames)} frames -> {len(keys)} keyframes -> {len(events)} events  ({out})")
     return events
