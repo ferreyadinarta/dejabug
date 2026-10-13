@@ -9,3 +9,6 @@ node_modules/
 dejabug-out/
 dist/
 docs/demo/
+bench/benchmark/videos/
+bench/benchmark/frames/
+bench/benchmark/out/
