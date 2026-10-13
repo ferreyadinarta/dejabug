@@ -54,6 +54,12 @@ def cmd_verify(a: argparse.Namespace) -> int:
     return 0 if v["verdict"] == "REPRODUCED" else 1
 
 
+def cmd_doctor(a: argparse.Namespace) -> int:
+    from dejabug.doctor import main as doctor
+
+    return doctor()
+
+
 def cmd_test(a: argparse.Namespace) -> int:
     """Run a repro test with the Python that has dejabug installed."""
     import os
@@ -167,6 +173,9 @@ def main(argv: list[str] | None = None) -> int:
     v.add_argument("test", type=Path)
     v.add_argument("--url")
     v.set_defaults(fn=cmd_verify)
+
+    d = sub.add_parser("doctor", help="check what dejabug needs and how to fix anything missing")
+    d.set_defaults(fn=cmd_doctor)
 
     t = sub.add_parser("test", help="run a repro test (exit 1 = bug reproduced)")
     t.add_argument("test", type=Path)
