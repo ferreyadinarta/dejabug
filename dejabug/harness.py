@@ -10,7 +10,10 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from playwright.sync_api import Page, sync_playwright
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from playwright.sync_api import Page
 
 REPRODUCED, SETUP_ERROR, NOT_REPRODUCED = 1, 2, 0
 
@@ -76,6 +79,8 @@ def open_page(url: str, width: int = 1280, height: int = 800, slow_mo: int = 120
     url = os.environ.get("DEJABUG_URL", url)
     record_to = os.environ.get("DEJABUG_REPLAY_VIDEO")
     tmp = tempfile.mkdtemp(prefix="dejabug-") if record_to else None
+    from playwright.sync_api import sync_playwright
+
     with sync_playwright() as p:
         browser = p.chromium.launch(channel=os.environ.get("DEJABUG_BROWSER", "chrome"),
                                     slow_mo=slow_mo if record_to else 0)

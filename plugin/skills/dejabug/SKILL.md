@@ -9,15 +9,11 @@ The user has a recording of a bug. You turn it into a Playwright test that perfo
 
 ## 0. Setup (once)
 
-Check `dejabug --version`. If missing, install it:
+Run `dejabug doctor`. If `dejabug` isn't installed, install it with `pip install 'dejabug[run]'` (or prefix every command with `uvx --from 'dejabug[run]'` if uv is available). Doctor prints one exact fix for anything else that's missing; apply it and run doctor again.
 
-```bash
-uv tool install git+https://github.com/ferreyadinarta/dejabug
-```
+For written steps only, `pip install dejabug` is enough and no app is needed: `dejabug steps <video or GitHub issue link>`.
 
-Tests run in Google Chrome by default. Without Chrome, set `DEJABUG_BROWSER=chromium` and run `uvx playwright install chromium`.
-
-You also need the app from the video running locally. Get its URL from the user, or find the project's dev script and start it.
+You also need the app from the video running locally for test mode. Get its URL from the user, or find the project's dev script and start it.
 
 ## 1. Watch the video
 

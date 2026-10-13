@@ -1,6 +1,6 @@
 [project]
 name = "dejabug"
-version = "0.1.0"
+version = "0.1.1"
 description = "Turn a screen recording of a bug into a test that fails the same way."
 readme = "README.md"
 license = "MIT"
@@ -14,8 +14,10 @@ dependencies = [
     "rapidocr>=3.0; sys_platform != 'darwin'",
     "onnxruntime>=1.20; sys_platform != 'darwin'",
     "opencv-python-headless>=5.0.0.93",
-    "playwright>=1.63.0",
 ]
+
+[project.optional-dependencies]
+run = ["playwright>=1.63.0"]
 
 [project.urls]
 Homepage = "https://github.com/ferreyadinarta/dejabug"
@@ -33,7 +35,7 @@ build-backend = "hatchling.build"
 packages = ["dejabug"]
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "playwright>=1.63.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

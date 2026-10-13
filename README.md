@@ -72,10 +72,14 @@ So dejabug checks its test against the video itself, and steps mode works from t
 ## Install
 
 ```bash
-uv tool install git+https://github.com/ferreyadinarta/dejabug
+pip install dejabug             # steps mode
+pip install 'dejabug[run]'      # adds test mode (Playwright)
+dejabug doctor                  # checks your setup and prints the fix for anything missing
 ```
 
-Needs Python 3.12+ and Google Chrome (or set `DEJABUG_BROWSER=chromium` and run `uvx playwright install chromium`). Runs on macOS, Linux and Windows. On macOS, OCR uses Apple Vision; elsewhere it uses RapidOCR.
+With [uv](https://docs.astral.sh/uv/) you can skip installing: `uvx dejabug steps <video>`, or `uvx --from 'dejabug[run]' dejabug run ...` for test mode.
+
+Needs Python 3.12+. Test mode also needs Google Chrome (or run `python -m playwright install chromium` and set `DEJABUG_BROWSER=chromium`). On macOS, OCR uses Apple Vision; elsewhere it uses RapidOCR, whose models ship with the package. It has been tested on macOS so far; clean-machine checks on Linux and Windows are in progress.
 
 ### In Claude Code
 

@@ -18,6 +18,14 @@ def _say(msg: str) -> None:
     print(msg, flush=True)
 
 
+def _need_playwright() -> None:
+    import importlib.util
+
+    if importlib.util.find_spec("playwright") is None:
+        sys.exit("Test mode needs Playwright. Install it with:  pip install 'dejabug[run]'\n"
+                 "or run through uvx:  uvx --from 'dejabug[run]' dejabug run ...")
+
+
 def _input(a: argparse.Namespace) -> tuple[Path, Path]:
     from dejabug.source import resolve
 
@@ -48,6 +56,7 @@ def cmd_steps(a: argparse.Namespace) -> int:
 
 
 def cmd_verify(a: argparse.Namespace) -> int:
+    _need_playwright()
     from dejabug.verify import verify
 
     v = verify(a.evidence, a.test, a.url)
@@ -61,6 +70,7 @@ def cmd_doctor(a: argparse.Namespace) -> int:
 
 
 def cmd_test(a: argparse.Namespace) -> int:
+    _need_playwright()
     """Run a repro test with the Python that has dejabug installed."""
     import os
     import subprocess
@@ -70,6 +80,7 @@ def cmd_test(a: argparse.Namespace) -> int:
 
 
 def cmd_run(a: argparse.Namespace) -> int:
+    _need_playwright()
     from dejabug.agent import build_port_prompt, build_prompt, run_agent
     from dejabug.ingest import ingest
     from dejabug.verify import verify
