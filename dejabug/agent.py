@@ -111,7 +111,7 @@ def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budg
                      "or set DEJABUG_AGENT to another agent's command.")
         py = sys.executable
         cmd = [
-            "claude", "-p", prompt,
+            shutil.which("claude"), "-p", prompt,  # full path: on Windows it's claude.cmd
             "--permission-mode", "acceptEdits",
             "--allowedTools", "Read", "Write", "Edit", "Glob", "Grep",
             "Bash(python *)", "Bash(python3 *)", f"Bash({py} *)", *extra_tools,
