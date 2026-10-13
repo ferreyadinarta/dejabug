@@ -13,7 +13,7 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-> **Status: early.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) showed that the first version of `dejabug steps` missed most of what users do (it found 9 of 175 actions). Steps are now written by a model that watches the whole recording. On a separate set of 10 development videos, in two runs, it found 63% of the actions in the median video, and 64% to 71% of all the steps it listed were right. The benchmark will be rerun once, on the same 20 videos, before release. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
+> **Status: early.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) showed that the first version of `dejabug steps` missed most of what users do (it found 9 of 175 actions). Steps are now written by a model that watches the whole recording. On a separate set of 20 development videos, in two runs, it found about half of the actions in the median video (52% and 55%), and 49% to 62% of all the steps it listed were right. That's far better than before, but not yet good enough to trust without checking. The benchmark will be rerun once, on the same 20 videos, before release. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
 
 ## Steps to reproduce, from a bug video
 
@@ -132,7 +132,7 @@ Steps mode uses `opus` (`--model`, or `DEJABUG_STEPS_MODEL`). Test mode's agent 
 | | Steps mode | Test mode (measured so far) |
 |---|---|---|
 | Time | under a minute | about 4 min per bug |
-| Cost | about $0.55 per video with `opus` (10 dev videos, 5 to 66 s long); free with `--no-ai` | about $0.45 per bug with `sonnet` |
+| Cost | about $0.50 per video with `opus` (20 dev videos, 5 to 66 s long); free with `--no-ai` | about $0.45 per bug with `sonnet` |
 
 The test-mode numbers come from two runs on the development set below, not from the benchmark.
 
