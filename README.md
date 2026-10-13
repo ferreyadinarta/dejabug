@@ -85,6 +85,10 @@ Needs Python 3.12+. Test mode also needs Google Chrome (or run `python -m playwr
 
 Then share a bug video and ask for a repro, or run `/dejabug bug.mov http://localhost:3000`. The session you're already in writes the test.
 
+### On your GitHub issues
+
+Add the dejabug Action and it replies to issues that have a video with steps written from it. It runs when you add a `dejabug` label, so strangers can't spend your API credit. Setup is one workflow file and one secret: [docs/github-action.md](docs/github-action.md).
+
 ## Usage
 
 ```bash

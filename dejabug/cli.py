@@ -14,6 +14,8 @@ from pathlib import Path
 from dejabug import __version__
 
 GREEN, RED, DIM, BOLD, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[1m", "\033[0m"
+if not sys.stdout.isatty() or os.environ.get("NO_COLOR"):  # plain text in logs and pipes
+    GREEN = RED = DIM = BOLD = RESET = ""
 
 
 def _say(msg: str) -> None:

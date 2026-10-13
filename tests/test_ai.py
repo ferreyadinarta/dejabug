@@ -61,3 +61,9 @@ def test_tidy_joins_split_typing():
                       {"t": 9.0, "action": "type", "target": "Option 1", "text": "x"}]}
     steps = tidy(data)["steps"]
     assert [s.get("text") for s in steps] == [None, "fdsfds", "x"]
+
+
+def test_action_comment_is_marked_so_it_posts_once():
+    from dejabug.action import MARKER, comment_body
+    body = comment_body("### Steps\n1. Click x (1.0s)\n", "https://example/run")
+    assert body.startswith(MARKER) and "1. Click x" in body and "https://example/run" in body
