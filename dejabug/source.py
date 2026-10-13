@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import shutil
 import subprocess
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -17,16 +20,43 @@ VIDEO_URL = re.compile(
     r"|\S+?\.(?:mp4|mov|webm))",
     re.IGNORECASE,
 )
+NO_ACCESS = ("GitHub didn't return {what} (HTTP {code}). Without a token GitHub allows 60 requests an hour per network.\n"
+             "Fix: set GITHUB_TOKEN (or run `gh auth login`), or download the video and pass the file instead.")
 
 
-def _get(url: str) -> bytes:
-    req = urllib.request.Request(url, headers={"User-Agent": "dejabug", "Accept": "application/vnd.github+json"})
-    with urllib.request.urlopen(req, timeout=60) as r:
+def github_token() -> str | None:
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if not token and shutil.which("gh"):
+        r = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        token = r.stdout.strip() if r.returncode == 0 else None
+    return token or None
+
+
+def _get(url: str, token: str | None = None, api: bool = False) -> bytes:
+    headers = {"User-Agent": "dejabug"}
+    if api:
+        headers["Accept"] = "application/vnd.github+json"
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60) as r:
         return r.read()
 
 
+def issue_text(owner: str, repo: str, num: str) -> str:
+    """The issue body from the API, falling back to the issue's web page when the API refuses."""
+    token = github_token()
+    try:
+        return json.loads(_get(f"https://api.github.com/repos/{owner}/{repo}/issues/{num}", token, api=True)).get("body") or ""
+    except urllib.error.HTTPError as api_err:
+        try:
+            return _get(f"https://github.com/{owner}/{repo}/issues/{num}", token).decode("utf-8", "replace")
+        except urllib.error.HTTPError:
+            raise SystemExit(NO_ACCESS.format(what="the issue", code=api_err.code)) from None
+
+
 def is_video(path: Path) -> bool:
-    err = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-i", str(path)], capture_output=True, text=True, encoding="utf-8", errors="replace").stderr
+    err = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-i", str(path)], capture_output=True, text=True,
+                         encoding="utf-8", errors="replace").stderr
     return "Video:" in err
 
 
@@ -43,13 +73,16 @@ def resolve(arg: str, workdir: Path) -> tuple[Path, str]:
     dest = workdir / name / "video.mp4"
     if dest.exists():
         return dest, name
-    issue = json.loads(_get(f"https://api.github.com/repos/{owner}/{repo}/issues/{num}"))
-    urls = VIDEO_URL.findall(issue.get("body") or "")
+    urls = list(dict.fromkeys(VIDEO_URL.findall(issue_text(owner, repo, num))))
     if not urls:
         raise SystemExit(f"no video found in {arg}")
     dest.parent.mkdir(parents=True, exist_ok=True)
     for url in urls:
-        dest.write_bytes(_get(url.rstrip(").,>")))
+        try:
+            # no token here: attachments redirect to storage that rejects GitHub tokens
+            dest.write_bytes(_get(url.rstrip(").,>\"'")))
+        except urllib.error.HTTPError:
+            continue
         if is_video(dest):
             return dest, name
     dest.unlink(missing_ok=True)

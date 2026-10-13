@@ -27,6 +27,8 @@ jobs:
       - name: Steps from a local video
         run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} steps demo/bug.webm -o out-local
       - name: Steps from a GitHub issue link
+        env:
+          GITHUB_TOKEN: ${{ github.token }}  # shared runner IPs hit the 60/hour anonymous limit
         run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} steps https://github.com/mui/material-ui/issues/47203 -o out-issue
       - name: Test mode says how to add Playwright
         shell: bash
