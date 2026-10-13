@@ -103,6 +103,8 @@ def ai_markdown(data: dict, video: str) -> str:
         target = s.get("target") or ""
         if s.get("action") in ("type", "paste") and target:
             line = f"{verb} {what} in {target}"
+        elif s.get("action") == "drag" and s.get("text"):
+            line = f"{verb} {target} to {s['text']}"
         elif s.get("action") == "press":
             line = f"{verb} {s.get('text') or target}"
         else:

@@ -12,6 +12,7 @@ DATA = {
         {"t": 3.1, "action": "type", "target": "Coupon code", "text": "SAVE10"},
         {"t": 4.0, "action": "press", "text": "Enter"},
         {"t": 4.5, "action": "click", "target": "Apply", "uncertain": True},
+        {"t": 6.0, "action": "drag", "target": "the red rectangle", "text": "the frame"},
     ],
     "bug": {"t": 5.0, "what": "an error toast instead of a discount"},
 }
@@ -23,6 +24,7 @@ def test_ai_markdown_reads_like_steps():
     assert '2. Type "SAVE10" in Coupon code (3.1s)' in md
     assert "3. Press Enter (4.0s)" in md
     assert "4. Click Apply (4.5s) _(not sure)_" in md
+    assert "5. Drag the red rectangle to the frame (6.0s)" in md
     assert "**Bug** (5.0s): an error toast instead of a discount" in md
 
 
