@@ -3,8 +3,9 @@
 <p align="center"><b>Seen it once. Now it fails every time.</b></p>
 
 <p align="center">
-Drop in a screen recording of a bug. Get back a Playwright test that fails the same way,
-<br>checked against the video, step by step.
+Someone sends you a screen recording of a bug. dejabug watches it, has a coding agent
+<br>write a Playwright test that repeats what the user did, and checks that the test
+<br>fails the same way the video shows.
 </p>
 
 <p align="center">
@@ -12,12 +13,29 @@ Drop in a screen recording of a bug. Get back a Playwright test that fails the s
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-> **Status: experiment.** The full loop works end to end on a real MUI bug (below). On a wider benchmark it is not reliable yet; see [Results so far](#results-so-far). I've stopped active work on it, and the code stays here for anyone who wants to pick it up.
+<p align="center">
+  <img src="docs/hero.png" alt="Left: two frames from a user's bug video, where a list jumps back to the top after clicking Inception. Middle: the same events as text. Right: the generated Playwright test, failing on MUI 7.3.7 and passing on 7.3.8.">
+</p>
+
+> **Status: experiment.** This works end to end on the real MUI bug above, but not reliably yet on a wider benchmark (see [Results so far](#results-so-far)). I've stopped active work on it; the code stays here for anyone who wants to pick it up.
+
+## Why
+
+Bug reports arrive as videos. A customer records their screen, QA attaches a Loom, someone drops an mp4 into a GitHub issue. Then a developer watches it over and over, trying to work out what was clicked so they can make it happen again.
+
+Coding agents can't help much here, because they can't watch video, and a folder of frames doesn't show what was clicked or in what order. When an agent does write a "repro", nothing checks that it fails because of *this* bug and not for some other reason.
+
+## How it works
 
 <p align="center">
-  <img src="docs/mui-47203-strip.png" width="640" alt="Frames from the user's bug video next to frames from dejabug's replay of the generated test">
-  <br><sub>Left: the user's recording of <a href="https://github.com/mui/material-ui/issues/47203">mui/material-ui#47203</a>. Right: the replay of the test dejabug wrote for it, matched moment by moment.</sub>
+  <img src="docs/how-it-works.png" alt="bug.mp4 goes through three stages: watch turns the video into text, write has an agent write the test, verify records the test's replay and lines it up with the video. The result is REPRODUCED, FAILS_DIFFERENTLY or NOT_REPRODUCED; when it isn't reproduced, the report goes back to the agent.">
 </p>
+
+**watch** keeps only the frames where the screen settles after a change (plus brief flashes, like a menu that opens and closes at once), reads them with OCR, and finds clicks by tracking the mouse pointer. A 60-second video becomes about 30 lines of events and one contact sheet image.
+
+**write** gives those to a coding agent (Claude Code by default, any agent CLI works), which writes a Playwright test asserting the *correct* behaviour, so it fails while the bug exists.
+
+**verify** is what makes the result trustworthy. It records the test's replay, watches it the same way, and lines up the two: same moments, same order. A test that fails for an unrelated reason (wrong button, timeout, a different bug) gets `FAILS_DIFFERENTLY` instead of passing as a repro. You also get [side-by-side frames](docs/mui-47203-strip.png) of the user's video and the replay.
 
 ```
 $ dejabug run bug.mp4 --url http://localhost:5173
@@ -29,40 +47,7 @@ $ dejabug run bug.mp4 --url http://localhost:5173
             ✓ chip appears ✓ list jumps back to the top
 
 REPRODUCED  in 173s
-  test:   dejabug-out/bug/repro_test.py
-  proof:  dejabug-out/bug/verify/strip.png
 ```
-
-## Why
-
-Bug reports arrive as videos. A customer records their screen, QA attaches a Loom, someone drops an mp4 into a GitHub issue. Then a developer watches it over and over, trying to work out what was clicked so they can make it happen again.
-
-Coding agents can't help much here, because they can't watch video, and a folder of frames doesn't show what was clicked or in what order. When an agent does write a "repro", nothing checks that it fails because of *this* bug and not for some other reason.
-
-dejabug turns the video into something an agent can read, and then checks the agent's test against the video.
-
-## How it works
-
-```
-bug.mp4 ──► watch ──► events.jsonl + contact sheet ──► agent writes repro_test.py
-                                                                │
-          REPRODUCED ◄── same moments, same order? ◄── verify: replay the test,
-                                                       watch the replay too
-```
-
-`watch` reduces a recording to the moments where the screen settles after a change, reads them with OCR, and tracks the mouse pointer (the small patch that disappears in one spot and reappears unchanged in another), so a 60-second video becomes about 30 lines like:
-
-```json
-{"t": 3.4, "type": "content_replaced", "after": ["The Good, the Bad and the Ugly", "Fight Club", "..."]}
-{"t": 4.1, "type": "click", "label": "Inception"}
-{"t": 4.3, "type": "content_replaced", "after": ["The Shawshank Redemption", "The Godfather", "..."]}
-```
-
-`write` hands that log and a contact sheet to a coding agent (Claude Code by default), which writes a Playwright test asserting the *correct* behaviour, so it fails while the bug exists.
-
-`verify` runs the test, records the replay, watches it with the same extractor, and lines the two up. A test that fails for an unrelated reason (wrong button, timeout, a different bug) gets `FAILS_DIFFERENTLY`. When a test doesn't reproduce the video, the report goes back to the agent for another try.
-
-You also get `strip.png`: frames from the user's video next to frames from the replay, one row per matched moment.
 
 ## Install
 
