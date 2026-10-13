@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import urllib.error
 import urllib.request
+from importlib import resources
 from pathlib import Path
 
 API = "https://api.anthropic.com/v1/messages"
@@ -18,7 +19,7 @@ MAX_SHEETS = 40
 MAX_EVENTS_CHARS = 30_000
 
 
-def _content(prompt: str, evidence: Path) -> list[dict]:
+def _content(prompt: str, evidence: Path, events: bool = True) -> list[dict]:
     sheets = sorted((evidence / "film").glob("*.jpg"))
     if len(sheets) > MAX_SHEETS:
         sheets = [sheets[round(i * (len(sheets) - 1) / (MAX_SHEETS - 1))] for i in range(MAX_SHEETS)]
@@ -27,9 +28,9 @@ def _content(prompt: str, evidence: Path) -> list[dict]:
         parts.append({"type": "text", "text": f"film/{s.name}"})
         parts.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
                                                   "data": base64.b64encode(s.read_bytes()).decode()}})
-    events = evidence / "events.jsonl"
-    if events.exists():
-        parts.append({"type": "text", "text": "events.jsonl:\n" + events.read_text(encoding="utf-8")[:MAX_EVENTS_CHARS]})
+    log = evidence / "events.jsonl"
+    if events and log.exists():
+        parts.append({"type": "text", "text": "events.jsonl:\n" + log.read_text(encoding="utf-8")[:MAX_EVENTS_CHARS]})
     return parts
 
 
@@ -78,9 +79,19 @@ def available() -> bool:
     return bool(shutil.which("claude") or os.environ.get("ANTHROPIC_API_KEY"))
 
 
-def write_steps(prompt: str, evidence: Path, target: Path, model: str = "sonnet") -> dict:
-    """Send the film and events in one message, save the steps JSON to `target`, return usage."""
-    content = _content(prompt, evidence)
-    text, usage = _via_claude_code(content, model) if shutil.which("claude") else _via_api(content, model)
+def _ask(content: list[dict], model: str) -> tuple[str, dict]:
+    return _via_claude_code(content, model) if shutil.which("claude") else _via_api(content, model)
+
+
+def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", check: bool = True) -> dict:
+    """Draft the steps from the film in one call, then have a second call check the draft against the frames."""
+    text, usage = _ask(_content(prompt, evidence), model)
     _save(text, target)
+    if check:
+        draft = target.read_text(encoding="utf-8")
+        target.with_name("steps_draft.json").write_text(draft, encoding="utf-8")
+        template = resources.files("dejabug").joinpath("prompts/check_steps.md").read_text(encoding="utf-8")
+        text, more = _ask(_content(template.replace("{draft}", draft), evidence, events=False), model)
+        _save(text, target)
+        usage = {k: usage.get(k, 0) + more.get(k, 0) for k in usage}
     return usage

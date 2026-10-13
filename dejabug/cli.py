@@ -79,7 +79,8 @@ def _ai_steps(a: argparse.Namespace, out: Path, video: Path) -> str | None:
             _say(f"{RED}no steps written (exit {code}); see {out / 'agent_steps.log'}{RESET}")
             return None
     else:
-        usage = vision.write_steps(build_steps_prompt(out, target, _context(a, video), api=True), out, target, a.model)
+        usage = vision.write_steps(build_steps_prompt(out, target, _context(a, video), api=True), out, target, a.model,
+                                   check=os.environ.get("DEJABUG_CHECK", "1") == "1")
     data = tidy(json.loads(target.read_text(encoding="utf-8")))
     target.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
     if usage.get("cost_usd"):
