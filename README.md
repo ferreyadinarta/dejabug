@@ -79,7 +79,7 @@ dejabug doctor                  # checks your setup and prints the fix for anyth
 
 With [uv](https://docs.astral.sh/uv/) you can skip installing: `uvx dejabug steps <video>`, or `uvx --from 'dejabug[run]' dejabug run ...` for test mode.
 
-Needs Python 3.12+. Test mode also needs Google Chrome (or run `python -m playwright install chromium` and set `DEJABUG_BROWSER=chromium`). On macOS, OCR uses Apple Vision; elsewhere it uses RapidOCR, whose models ship with the package. It has been tested on macOS so far; clean-machine checks on Linux and Windows are in progress.
+Needs Python 3.12+. Test mode also needs Google Chrome (or run `python -m playwright install chromium` and set `DEJABUG_BROWSER=chromium`). On macOS, OCR uses Apple Vision; elsewhere it uses RapidOCR, whose models ship with the package. Steps mode is installed and run on fresh Linux, Windows and macOS machines on every change ([clean-install check](.github/workflows/clean-install.yml)); test mode has only been tested on macOS so far.
 
 ### In Claude Code
 
