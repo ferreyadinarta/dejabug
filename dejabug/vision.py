@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from importlib import resources
 from pathlib import Path
 
@@ -83,15 +84,25 @@ def _ask(content: list[dict], model: str) -> tuple[str, dict]:
     return _via_claude_code(content, model) if shutil.which("claude") else _via_api(content, model)
 
 
-def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", check: bool = True) -> dict:
-    """Draft the steps from the film in one call, then have a second call check the draft against the frames."""
-    text, usage = _ask(_content(prompt, evidence), model)
+def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", drafts: int = 2) -> dict:
+    """Draft the steps from the film (twice, independently), then a checking call reconciles the drafts with the frames."""
+    content = _content(prompt, evidence)
+    with ThreadPoolExecutor(drafts) as pool:
+        results = list(pool.map(lambda _: _ask(content, model), range(drafts)))
+    usage: dict = {}
+    texts = []
+    for n, (text, u) in enumerate(results, 1):
+        draft = target.with_name(f"steps_draft{n}.json")
+        try:
+            _save(text, draft)
+            texts.append(draft.read_text(encoding="utf-8"))
+        except SystemExit:
+            pass
+        usage = {k: usage.get(k, 0) + v for k, v in u.items()}
+    if not texts:
+        raise SystemExit("the model didn't return steps")
+    template = resources.files("dejabug").joinpath("prompts/check_steps.md").read_text(encoding="utf-8")
+    joined = "\n\n".join(f"Draft {n}:\n\n```json\n{t}\n```" for n, t in enumerate(texts, 1))
+    text, more = _ask(_content(template.replace("{drafts}", joined), evidence, events=False), model)
     _save(text, target)
-    if check:
-        draft = target.read_text(encoding="utf-8")
-        target.with_name("steps_draft.json").write_text(draft, encoding="utf-8")
-        template = resources.files("dejabug").joinpath("prompts/check_steps.md").read_text(encoding="utf-8")
-        text, more = _ask(_content(template.replace("{draft}", draft), evidence, events=False), model)
-        _save(text, target)
-        usage = {k: usage.get(k, 0) + more.get(k, 0) for k in usage}
-    return usage
+    return {k: usage.get(k, 0) + more.get(k, 0) for k in usage}
