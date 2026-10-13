@@ -34,7 +34,7 @@ This writes, into the output folder:
   - `content_replaced` (list rows changed at once: scrolled, filtered)
   - `scroll`, `nav`, `error_shown`
 
-  Coordinates are pixels in a 1280-px-wide copy of the video.
+  Coordinates are pixels in the extracted frames (videos wider than 1280 px are scaled down to 1280).
 - `keyframes/<time>s.png`: open any frame you need to see in full.
 
 Write down the user's steps and the bug (what happened vs. what they expected) before writing code. Steps that look incidental often matter: a menu closed and reopened, a scroll before a click, a second click.

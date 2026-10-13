@@ -30,7 +30,7 @@ import imageio_ffmpeg
 import numpy as np
 
 SAMPLE_FPS = 10         # frames per second pulled from the video
-WIDTH = 1280            # frames are scaled to this width; all coordinates use this space
+WIDTH = 1280            # wider videos are scaled down to this; smaller ones keep their size
 MIN_CHANGE = 0.0002     # fraction of pixels (outside the cursor) that must change
 CURSOR_MAX = 48         # change blobs no bigger than this (px) are treated as the cursor
 REST_FRAMES = 2         # this many quiet frames in a row end a burst of change
@@ -92,7 +92,7 @@ def extract_frames(video: Path, dest: Path) -> list[tuple[float, Path]]:
     dest.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         [imageio_ffmpeg.get_ffmpeg_exe(), "-loglevel", "error", "-i", str(video),
-         "-vf", f"fps={SAMPLE_FPS},scale={WIDTH}:-2", str(dest / "f%05d.png")],
+         "-vf", f"fps={SAMPLE_FPS},scale='min({WIDTH},iw)':-2", str(dest / "f%05d.png")],
         check=True,
     )
     return [(i / SAMPLE_FPS, p) for i, p in enumerate(sorted(dest.glob("f*.png")))]

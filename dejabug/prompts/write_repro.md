@@ -11,7 +11,7 @@ You are reproducing a bug from a screen recording. Your job: write a Playwright 
   - `content_replaced` (a list's rows changed at once: scrolled, filtered or re-sorted)
   - `scroll`, `nav`, `error_shown`, `ui_change`
 
-  Coordinates are pixels in a 1280-px-wide copy of the video, not page coordinates.
+  Coordinates are pixels in the extracted frames (videos wider than 1280 px are scaled down to 1280), not page coordinates.
 - `{evidence}/contact_sheet.png`: every keyframe in one image, with timestamps. Look at it first.
 - `{evidence}/keyframes/*.png`: full-size keyframes, named by time. Open the ones around anything confusing.
 - `{evidence}/cursor.jsonl`: where the mouse pointer was over time.
