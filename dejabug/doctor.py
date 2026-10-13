@@ -7,6 +7,7 @@ import os
 import platform
 import shutil
 import sys
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -42,6 +43,8 @@ def _github() -> bool:
     try:
         urllib.request.urlopen(urllib.request.Request("https://api.github.com", method="HEAD"), timeout=8)
         return True
+    except urllib.error.HTTPError:
+        return True  # any reply (even "rate limited") means the network works
     except Exception:
         return False
 
@@ -75,6 +78,11 @@ def checks() -> list[tuple[str, str, str, str]]:
     return rows
 
 
+def ready(rows, area: str) -> bool:
+    """Every check in `area` passed, except the optional GitHub one (local files still work)."""
+    return all(status == OK for a, status, what, _ in rows if a == area and "GitHub" not in what)
+
+
 def main() -> int:
     rows = checks()
     mark = {OK: "✓", MISSING: "✗", OPTIONAL: "–"}
@@ -83,7 +91,7 @@ def main() -> int:
         if fix:
             line += f"\n      fix: {fix}"
         print(f"[{area:5}]{line}")
-    steps_ready = all(s == OK for a, s, _, _ in rows if a == "steps" and "GitHub" not in _)
-    run_ready = steps_ready and all(s == OK for a, s, _, _ in rows if a == "run")
+    steps_ready = ready(rows, "steps")
+    run_ready = steps_ready and ready(rows, "run")
     print(f"\nsteps mode: {'ready' if steps_ready else 'not ready'}   test mode: {'ready' if run_ready else 'not ready'}")
     return 0 if steps_ready else 1
