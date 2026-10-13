@@ -44,7 +44,7 @@ def cmd_test(a: argparse.Namespace) -> int:
 
 
 def cmd_run(a: argparse.Namespace) -> int:
-    from dejabug.agent import build_prompt, run_agent
+    from dejabug.agent import build_port_prompt, build_prompt, run_agent
     from dejabug.ingest import ingest
     from dejabug.verify import verify
 
@@ -82,6 +82,15 @@ def cmd_run(a: argparse.Namespace) -> int:
         feedback = (out / "verify" / "report.md").read_text()
         _say("")
 
+    spec = out / "repro.spec.ts"
+    if a.format == "ts" and verdict.get("verdict") == "REPRODUCED":
+        _say(f"\n{BOLD}4. port{RESET}    agent is porting the test to @playwright/test (TypeScript)")
+        code, usage = run_agent(build_port_prompt(test, spec, a.url), out, out / "agent_port.log", a.model,
+                                max(a.max_cost - spent["cost_usd"], 0.25), extra_tools=("Bash(npx *)",))
+        for k, v in usage.items():
+            spent[k] += v
+        _say(f"          {DIM}{spec}{RESET}" if spec.exists() else f"          {RED}no spec written; see agent_port.log{RESET}")
+
     took = time.monotonic() - started
     final = verdict.get("verdict", "ERROR")
     color = GREEN if final == "REPRODUCED" else RED
@@ -91,6 +100,8 @@ def cmd_run(a: argparse.Namespace) -> int:
              f"{spent['output_tokens'] // 1000}k out, {spent['turns']} turns")
     if final == "REPRODUCED":
         _say(f"  test:   {test}\n  proof:  {out / 'verify' / 'strip.png'}")
+        if spec.exists():
+            _say(f"  spec:   {spec}")
     (out / "result.json").write_text(json.dumps({**verdict, "seconds": round(took), "agent": spent}, indent=2))
     return 0 if final == "REPRODUCED" else 1
 
@@ -110,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="model for the agent (default: sonnet)")
     r.add_argument("--max-cost", type=float, default=float(os.environ.get("DEJABUG_MAX_COST", "1.50")),
                    help="stop when the agent has spent this many US dollars (default 1.50)")
+    r.add_argument("--format", choices=("py", "ts"), default="py",
+                   help="ts: also write a @playwright/test TypeScript spec once the bug is reproduced")
     r.add_argument("--blind", action="store_true",
                    help="forbid the agent from looking the bug up (for benchmarks)")
     r.set_defaults(fn=cmd_run)

@@ -39,7 +39,48 @@ def build_prompt(evidence: Path, url: str, test: Path, note: str = "", blind: bo
     return prompt
 
 
-def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budget: float | None = None) -> tuple[int, dict]:
+TS_CONFIG = """export default {
+  testDir: '.',
+  testMatch: 'repro.spec.ts',
+  use: {
+    channel: process.env.DEJABUG_BROWSER === 'chromium' ? undefined : 'chrome',
+    storageState: process.env.DEJABUG_STORAGE_STATE || undefined,
+  },
+};
+"""
+
+
+def playwright_version() -> str:
+    from importlib.metadata import version
+
+    return version("playwright")
+
+
+def prepare_ts_project(folder: Path) -> None:
+    """Minimal npm project so the spec can import @playwright/test."""
+    pkg = folder / "package.json"
+    if not pkg.exists():
+        pkg.write_text('{"private": true, "devDependencies": {"@playwright/test": "%s"}}\n' % playwright_version())
+    if not (folder / "node_modules" / "@playwright" / "test").exists():
+        subprocess.run(["npm", "install", "--silent", "--no-audit", "--no-fund"], cwd=folder, check=True)
+    (folder / "playwright.dejabug.config.ts").write_text(TS_CONFIG)
+
+
+def build_port_prompt(test: Path, spec: Path, url: str) -> str:
+    prepare_ts_project(spec.parent)
+    template = resources.files("dejabug").joinpath("prompts/port_ts.md").read_text()
+    return (template
+            .replace("{test}", str(test.resolve()))
+            .replace("{spec}", str(spec.resolve()))
+            .replace("{spec_name}", spec.name)
+            .replace("{config_name}", "playwright.dejabug.config.ts")
+            .replace("{url}", url)
+            .replace("{npx}", "npx")
+            .replace("{pw_version}", playwright_version()))
+
+
+def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budget: float | None = None,
+              extra_tools: tuple[str, ...] = ()) -> tuple[int, dict]:
     workdir.mkdir(parents=True, exist_ok=True)
     prompt_file = workdir / "agent_prompt.md"
     prompt_file.write_text(prompt)
@@ -57,7 +98,7 @@ def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budg
             "claude", "-p", prompt,
             "--permission-mode", "acceptEdits",
             "--allowedTools", "Read", "Write", "Edit", "Glob", "Grep",
-            f"Bash({py} *)", f"Bash({shlex.quote(py)} *)",
+            f"Bash({py} *)", f"Bash({shlex.quote(py)} *)", *extra_tools,
             "--add-dir", str(workdir.resolve()),
             "--output-format", "json",
             "--model", model,
