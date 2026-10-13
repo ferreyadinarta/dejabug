@@ -217,7 +217,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--ai", action="store_true", help="have a model write the steps from the evidence (uses Claude Code)")
     s.add_argument("--note", help="anything the reporter said about the bug")
     s.add_argument("--model", default=os.environ.get("DEJABUG_MODEL", "sonnet"))
-    s.add_argument("--max-cost", type=float, default=float(os.environ.get("DEJABUG_MAX_COST", "0.50")))
+    s.add_argument("--max-cost", type=float, default=float(os.environ.get("DEJABUG_MAX_COST", "1.00")))
     s.set_defaults(fn=cmd_steps)
 
     v = sub.add_parser("verify", help="check that a test reproduces the video")
