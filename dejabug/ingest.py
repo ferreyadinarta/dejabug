@@ -176,6 +176,60 @@ def pointer_move(prev, cur, blobs, last) -> tuple[float, float] | None:
     return best
 
 
+@dataclass
+class PointerShape:
+    image: np.ndarray  # the pointer's pixels, float32
+    mask: np.ndarray   # 255 where the pixel belongs to the pointer
+    anchor: tuple[int, int]  # where the tracked point sits inside `image`
+
+
+def learn_shape(prev: np.ndarray, cur: np.ndarray, at: tuple[float, float]) -> PointerShape | None:
+    """After a clean move, the pointer is at `at` in `cur` and was absent there in
+    `prev`. The pixels that changed around `at` are the pointer itself."""
+    p = _patch(cur, *at)
+    q = _patch(prev, *at)
+    if p is None or q is None:
+        return None
+    mask = (np.abs(p - q) > 25).astype(np.uint8) * 255
+    n = int(np.count_nonzero(mask))
+    if not 25 <= n <= 0.8 * mask.size:
+        return None
+    ys, xs = np.nonzero(mask)
+    y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+    if y1 - y0 < 6 or x1 - x0 < 3:
+        return None  # a speck or a hairline: not a pointer
+    # Clicks happen at the pointer's tip (the arrow's point, the hand's fingertip),
+    # which is the top of the shape, not its middle.
+    top = np.nonzero(mask[y0:y0 + 2, x0:x1])[1]
+    tip = (int(round(top.mean())) if len(top) else 0, 0)
+    return PointerShape(p[y0:y1, x0:x1].copy(), mask[y0:y1, x0:x1].copy(), tip)
+
+
+def find_shape(img: np.ndarray, shapes: list[PointerShape], near: tuple[float, float] | None,
+               radius: int = 220) -> tuple[float, float] | None:
+    """Look for a known pointer shape, comparing only the pointer's own pixels, so
+    whatever moves underneath it (a scrolling list, a hover highlight) doesn't matter."""
+    H, W = img.shape
+    if near is not None:
+        x0, y0 = max(0, int(near[0]) - radius), max(0, int(near[1]) - radius)
+        x1, y1 = min(W, int(near[0]) + radius), min(H, int(near[1]) + radius)
+    else:
+        x0, y0, x1, y1 = 0, 0, W, H
+    region = img[y0:y1, x0:x1].astype(np.float32)
+    best, best_err = None, 0.012
+    for s in shapes:
+        h, w = s.image.shape
+        if region.shape[0] < h or region.shape[1] < w:
+            continue
+        sq = cv2.matchTemplate(region, s.image, cv2.TM_SQDIFF, mask=s.mask)
+        err_map = sq / (float(np.count_nonzero(s.mask)) * 255.0 * 255.0)
+        _, _, loc, _ = cv2.minMaxLoc(err_map)
+        err = float(err_map[loc[1], loc[0]])
+        if err < best_err:
+            best, best_err = (x0 + loc[0] + s.anchor[0], y0 + loc[1] + s.anchor[1]), err
+    return best
+
+
 def scan(frames: list[tuple[float, Path]]):
     """Keyframes at each settle point, plus a track of the mouse pointer."""
     keys = [Keyframe(frames[0][0], frames[0][1])]
@@ -186,6 +240,7 @@ def scan(frames: list[tuple[float, Path]]):
     blinks = blink_spots(steps)
 
     cursor_pos: tuple[float, float] | None = None
+    shapes: list[PointerShape] = []
     burst_start, burst_frames, quiet = None, [], 0
     rest = 0                      # index of the last frame before the current burst
     peak, peak_change = None, 0.0  # the burst frame most different from `rest`
@@ -194,9 +249,22 @@ def scan(frames: list[tuple[float, Path]]):
         if i:
             frac, blobs, _ = steps[i]
             blobs = [b[:2] for b in blobs if is_pointer(b, blinks)]
-            moved = pointer_move(grays[i - 1], grays[i], blobs, cursor_pos)
-            if moved:
-                cursor_pos = moved
+            # Once we know what the pointer looks like, look for that shape.
+            # Otherwise fall back to "a small patch that travelled", and learn
+            # the shape from a clean move (little else changing on screen).
+            found = find_shape(grays[i], shapes, cursor_pos) if shapes else None
+            if found is None and shapes:
+                found = find_shape(grays[i], shapes, None)
+            if found:
+                cursor_pos = found
+            else:
+                moved = pointer_move(grays[i - 1], grays[i], blobs, cursor_pos)
+                if moved:
+                    cursor_pos = moved
+                    if frac < 0.01 and len(shapes) < 6:
+                        shape = learn_shape(grays[i - 1], grays[i], moved)
+                        if shape is not None:
+                            shapes.append(shape)
             if frac >= MIN_CHANGE:
                 if burst_start is None:
                     burst_start, rest = t, i - 1
@@ -305,7 +373,7 @@ def nearest_label(x: float, y: float, boxes: list[Box], limit: float = 70) -> st
         # distance from point to box edge (0 if inside)
         dx = max(b.x - x, 0, x - (b.x + b.w))
         dy = max(b.y - y, 0, y - (b.y + b.h))
-        d = float(np.hypot(dx, dy))
+        d = float(np.hypot(dx, dy * 2.5))  # rows run sideways: text on the same row wins
         if d < dist:
             best, dist = b.text, d
     if best is None:
