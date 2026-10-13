@@ -1,13 +1,4 @@
-"""Hand the evidence to a coding agent and let it write the repro test.
-
-The default agent is Claude Code (`claude -p`). Any other agent CLI works if it
-can read files, write a file and run one command:
-
-    DEJABUG_AGENT='codex exec --full-auto {prompt_file}' dejabug run bug.mov --url ...
-
-`{prompt_file}` is replaced with the path of a file holding the instructions;
-`{prompt}` is replaced with the instructions themselves.
-"""
+"""Hand the extracted evidence to a coding agent (DEJABUG_AGENT overrides the default, Claude Code)."""
 
 from __future__ import annotations
 

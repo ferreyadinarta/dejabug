@@ -1,17 +1,4 @@
-"""Turn a screen recording into a short, readable event log.
-
-    uv run python -m dejabug.ingest bug.mov out/
-
-Writes:
-    out/events.jsonl       one line per meaningful moment (clicks, typing, scrolls, errors...)
-    out/cursor.jsonl       where the mouse cursor was, per sampled frame
-    out/keyframes/*.png    the frames those events came from
-    out/contact_sheet.png  every keyframe in one image, with timestamps
-
-A 60 s recording is 1,800 frames, which no model reads well, and most of them
-are identical. We find the moments the screen *settles* after a change, OCR
-those, and describe what changed between them as text an agent can reason over.
-"""
+"""Turn a screen recording into a short event log, keyframes and a contact sheet."""
 
 from __future__ import annotations
 
@@ -117,9 +104,7 @@ def split_change(prev: np.ndarray, cur: np.ndarray):
 
 
 def blink_spots(steps) -> set[tuple[int, int]]:
-    """Places where a small blob keeps reappearing without moving: the text caret
-    blinking, a spinner, a pulsing dot. The mouse pointer moves, so it never piles
-    up in one spot like this."""
+    """Spots where a small blob keeps reappearing in place (caret, spinner), not the pointer."""
     counts: dict[tuple[int, int], int] = {}
     for _, blobs, _ in steps:
         for x, y, _, _ in blobs:
@@ -154,9 +139,7 @@ def _same(a: np.ndarray, b: np.ndarray) -> float:
 
 
 def pointer_move(prev, cur, blobs, last) -> tuple[float, float] | None:
-    """The pointer is a small thing that *travels*: the patch that vanished from
-    spot A reappears, unchanged, at spot B. A checkbox ticking or a caret blinking
-    changes in place and never forms such a pair."""
+    """Find a small patch that vanished in one spot and reappeared unchanged in another."""
     best, best_score = None, 0.75
     for ax, ay in blobs:
         before = _patch(prev, ax, ay)
@@ -184,8 +167,7 @@ class PointerShape:
 
 
 def learn_shape(prev: np.ndarray, cur: np.ndarray, at: tuple[float, float]) -> PointerShape | None:
-    """After a clean move, the pointer is at `at` in `cur` and was absent there in
-    `prev`. The pixels that changed around `at` are the pointer itself."""
+    """Learn the pointer's shape from the pixels that changed around it after a clean move."""
     p = _patch(cur, *at)
     q = _patch(prev, *at)
     if p is None or q is None:
@@ -198,8 +180,7 @@ def learn_shape(prev: np.ndarray, cur: np.ndarray, at: tuple[float, float]) -> P
     y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
     if y1 - y0 < 6 or x1 - x0 < 3:
         return None  # a speck or a hairline: not a pointer
-    # Clicks happen at the pointer's tip (the arrow's point, the hand's fingertip),
-    # which is the top of the shape, not its middle.
+    # clicks happen at the pointer's tip, i.e. the top of the shape
     top = np.nonzero(mask[y0:y0 + 2, x0:x1])[1]
     tip = (int(round(top.mean())) if len(top) else 0, 0)
     return PointerShape(p[y0:y1, x0:x1].copy(), mask[y0:y1, x0:x1].copy(), tip)
@@ -207,8 +188,7 @@ def learn_shape(prev: np.ndarray, cur: np.ndarray, at: tuple[float, float]) -> P
 
 def find_shape(img: np.ndarray, shapes: list[PointerShape], near: tuple[float, float] | None,
                radius: int = 220) -> tuple[float, float] | None:
-    """Look for a known pointer shape, comparing only the pointer's own pixels, so
-    whatever moves underneath it (a scrolling list, a hover highlight) doesn't matter."""
+    """Find a known pointer shape, comparing only its own pixels so the background doesn't matter."""
     H, W = img.shape
     if near is not None:
         x0, y0 = max(0, int(near[0]) - radius), max(0, int(near[1]) - radius)
@@ -249,9 +229,7 @@ def scan(frames: list[tuple[float, Path]]):
         if i:
             frac, blobs, _ = steps[i]
             blobs = [b[:2] for b in blobs if is_pointer(b, blinks)]
-            # Once we know what the pointer looks like, look for that shape.
-            # Otherwise fall back to "a small patch that travelled", and learn
-            # the shape from a clean move (little else changing on screen).
+            # find the known pointer shape, else learn it from a clean move
             found = find_shape(grays[i], shapes, cursor_pos) if shapes else None
             if found is None and shapes:
                 found = find_shape(grays[i], shapes, None)
@@ -277,10 +255,7 @@ def scan(frames: list[tuple[float, Path]]):
             elif burst_start is not None:
                 quiet += 1
                 if quiet >= REST_FRAMES:
-                    # A menu or toast that appears and vanishes inside one burst
-                    # never makes it to a settle point. Keep the frame where the
-                    # screen was furthest from where it started, if it also
-                    # differs from where it ended up.
+                    # keep the peak frame so menus/toasts that flash and vanish aren't lost
                     if peak is not None and frames[peak][0] < t \
                             and split_change(grays[peak], grays[i])[0] >= MIN_CHANGE * 10:
                         keys.append(Keyframe(frames[peak][0], frames[peak][1], burst_start))
@@ -310,8 +285,7 @@ _RAPID = None
 
 
 def _raw_ocr(path: Path, W: int, H: int):
-    """(text, confidence, x, y, w, h) in pixels, from Apple Vision on macOS or
-    RapidOCR everywhere else. DEJABUG_OCR=vision|rapid picks one explicitly."""
+    """OCR boxes in pixels: Apple Vision on macOS, RapidOCR elsewhere (DEJABUG_OCR overrides)."""
     global _RAPID
     engine = os.environ.get("DEJABUG_OCR") or ("vision" if sys.platform == "darwin" else "rapid")
     if engine == "vision":
@@ -346,8 +320,7 @@ def ocr(path: Path, W: int, H: int) -> list[Box]:
 # ---------------------------------------------------------------- events
 
 def column(boxes: list[Box]) -> tuple[list[Box], list[Box]]:
-    """Split texts into the largest left-aligned column (a list, menu or panel
-    appearing as one) and everything else."""
+    """Split texts into the largest left-aligned column (a list or menu) and the rest."""
     best: list[Box] = []
     for b in boxes:
         col = [o for o in boxes if abs(o.x - b.x) < 40]
@@ -372,9 +345,7 @@ def nearest_label(x: float, y: float, boxes: list[Box], limit: float = 70) -> st
     for b in boxes:
         if b.x <= x <= b.x + b.w and b.y <= y <= b.y + b.h:
             return b.text
-    # Rows in lists and menus are clickable across their full width while their
-    # text sits at the left, so text on the pointer's own row wins over anything
-    # above or below it, however close.
+    # list rows are clickable across their width, so the pointer's own row wins
     row = [b for b in boxes if b.y - b.h * 0.5 <= y <= b.y + b.h * 1.5 and b.x < x]
     if row:
         return min(row, key=lambda b: (abs(b.cy - y), -b.x)).text
@@ -482,8 +453,7 @@ def describe(keys: list[Keyframe], track) -> list[dict]:
                          "items": [b.text for b in panel][:6]})
         step += [{**base, "type": "text_gone", "text": b.text} for b in loose]
 
-        # Many rows in one column changing at once is a list being replaced
-        # (scrolled past, filtered, re-sorted), not a dozen separate edits.
+        # many rows changing at once = the list was replaced (scrolled, filtered)
         changed = [e for e in step if e["type"] == "text_changed"]
         if len(changed) >= 4:
             changed.sort(key=lambda e: e["xy"][1])
@@ -495,10 +465,37 @@ def describe(keys: list[Keyframe], track) -> list[dict]:
                          "before": [e["from"] for e in changed][:4],
                          "after": [e["to"] for e in changed][:4]})
 
+        # only a highlight changed: the pointer hovered, it didn't click
+        if any(e["type"] == "click" for e in step) and not substantive(step, prev.boxes):
+            for e in step:
+                if e["type"] == "click":
+                    e["type"] = "hover"
         if not step:
             step.append({**base, "type": "ui_change"})
         events += step
     return merge_typing(events)[:MAX_EVENTS]
+
+
+def substantive(step: list[dict], before: list[Box]) -> bool:
+    """True if something changed beyond a highlight or an OCR misread."""
+    import difflib
+
+    seen = [b.text.lower() for b in before]
+
+    def wobble(text: str) -> bool:
+        t = text.lower()
+        return any(t in s or s in t or difflib.SequenceMatcher(None, t, s).ratio() >= 0.7 for s in seen)
+
+    for e in step:
+        kind = e["type"]
+        if kind in ("click", "ui_change", "text_gone"):
+            continue
+        if kind in ("text_appeared", "error_shown") and wobble(e["text"]):
+            continue
+        if kind == "text_changed" and wobble(e["to"]):
+            continue
+        return True
+    return False
 
 
 def merge_typing(events: list[dict]) -> list[dict]:
@@ -542,9 +539,7 @@ def contact_sheet(keys: list[Keyframe], dest: Path, cols: int = 4) -> None:
 
 
 def zoom_clicks(events: list[dict], frames: list[tuple[float, Path]], out: Path, half: int = 90) -> None:
-    """Save a close-up of every click, taken just before it happened. Icon
-    buttons, canvases and toolbars have no text for a label; the agent can
-    look at the close-up instead."""
+    """Save a close-up of each click so the agent can see icon buttons with no text."""
     zdir = out / "clicks"
     if zdir.exists():
         shutil.rmtree(zdir)

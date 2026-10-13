@@ -1,17 +1,4 @@
-"""Check that a repro test really reproduces the video, not just *a* failure.
-
-    uv run python -m dejabug.verify out/bug/ repro_test.py [--url http://localhost:5173]
-
-1. Runs the test with DEJABUG_REPLAY_VIDEO set, so the harness records the replay.
-2. Watches the replay with the same extractor used on the original video.
-3. Aligns the two event sequences: the same clicks, the same text showing up,
-   the same lists changing, in the same order.
-4. Writes verify/report.md, verify/verdict.json and verify/strip.png
-   (original frame | replay frame, one row per matched moment).
-
-A test that fails for some unrelated reason (a timeout, a wrong locator, a
-different bug) does not count: the replay has to walk through the video.
-"""
+"""Check that a repro test's replay walks through the same moments as the original video."""
 
 from __future__ import annotations
 
@@ -55,8 +42,7 @@ class Moment:
 
 
 def moments(events: list[dict]) -> list[Moment]:
-    """The parts of an event log worth matching. Noise (text that vanished,
-    unlabeled UI changes) is left out."""
+    """The parts of an event log worth matching; noise is left out."""
     out = []
     for e in events:
         t, s, kind = e["t"], e.get("screen", ""), e["type"]
@@ -185,9 +171,7 @@ def verify(evidence: Path, test: Path, url: str | None = None) -> dict:
     pairs = align(orig, rep)
     matched = {i: (j, s) for i, j, s in pairs}
 
-    # Text that never shows up anywhere in the replay belongs to whatever was
-    # around the bug in the user's video (a docs page, other widgets). It is
-    # context, not part of what the test has to reproduce.
+    # text never seen in the replay is surrounding context, not part of the repro
     seen = " ".join(_norm(json.dumps(e, ensure_ascii=False)) for e in replay_events)
     context = {i for i, m in enumerate(orig)
                if i not in matched and m.kind == "show" and _norm(m.text) not in seen}

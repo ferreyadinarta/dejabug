@@ -1,10 +1,4 @@
-"""dejabug: turn a screen recording of a bug into a test that fails the same way.
-
-    dejabug run bug.mov --url http://localhost:3000     # the whole loop
-    dejabug watch bug.mov                               # video -> event log + contact sheet
-    dejabug verify out/bug/ repro_test.py               # does this test reproduce the video?
-    dejabug test repro_test.py                          # just run a repro test
-"""
+"""dejabug: turn a screen recording of a bug into a test that fails the same way."""
 
 from __future__ import annotations
 

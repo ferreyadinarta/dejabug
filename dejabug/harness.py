@@ -1,20 +1,4 @@
-"""The browser that dejabug tests run in.
-
-    from dejabug.harness import open_page
-
-    with open_page("http://localhost:5173") as page:
-        page.get_by_role("button", name="Apply").click()
-
-Exit codes for a repro test (so tools can tell outcomes apart):
-    1  the bug happened (the test's assertion failed)  -> reproduced
-    2  setup error (couldn't reach the state in the video)
-    0  the expected behaviour happened -> not reproduced / fixed
-
-When DEJABUG_REPLAY_VIDEO is set, the run is recorded to that path with a
-visible mouse pointer drawn into the page, so `dejabug verify` can watch the
-replay the same way it watched the original video. DEJABUG_URL overrides the
-URL, so one test can run against the buggy and the fixed build.
-"""
+"""Browser for repro tests: records replays (DEJABUG_REPLAY_VIDEO) and swaps the URL (DEJABUG_URL)."""
 
 from __future__ import annotations
 
@@ -30,8 +14,7 @@ from playwright.sync_api import Page, sync_playwright
 
 REPRODUCED, SETUP_ERROR, NOT_REPRODUCED = 1, 2, 0
 
-# Headless browsers draw no mouse pointer, so videos of them show no clicks.
-# This draws one that follows real mouse events and pulses on mousedown.
+# headless browsers draw no pointer; draw one so replays show clicks
 POINTER_JS = """
 (() => {
   const install = () => {
@@ -70,10 +53,7 @@ def _label(locator) -> str:
 
 
 def _human_clicks(pause_ms: int = 500) -> None:
-    """Scripts click instantly; people move to a target, pause, then click. The
-    pause makes the click visible on the replay video the way it is in a user's
-    recording. Every click is also logged with its time and label, so verify
-    knows exactly what the replay did instead of guessing from pixels."""
+    """Hover and pause before each click, and log it, so replays look like real recordings."""
     from playwright.sync_api import Locator
 
     if getattr(Locator, "_dejabug_patched", False):
