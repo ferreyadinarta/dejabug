@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -62,7 +63,11 @@ def cmd_run(a: argparse.Namespace) -> int:
     for attempt in range(1, a.tries + 1):
         _say(f"{BOLD}2. write{RESET}   attempt {attempt}/{a.tries}: agent is writing the repro test")
         prompt = build_prompt(out, a.url, test, note=a.note or "", blind=a.blind, feedback=feedback)
-        code, usage = run_agent(prompt, out, out / f"agent_attempt{attempt}.log")
+        left = a.max_cost - spent["cost_usd"]
+        if left < 0.05:
+            _say(f"          {RED}budget of ${a.max_cost:.2f} used up{RESET}")
+            break
+        code, usage = run_agent(prompt, out, out / f"agent_attempt{attempt}.log", a.model, left)
         for k, v in usage.items():
             spent[k] += v
         if code != 0 or not test.exists():
@@ -101,6 +106,10 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("-o", "--out", type=Path, help="output folder (default: dejabug-out/<video name>)")
     r.add_argument("--note", help="anything the reporter said about the bug")
     r.add_argument("--tries", type=int, default=3, help="attempts before giving up (default 3)")
+    r.add_argument("--model", default=os.environ.get("DEJABUG_MODEL", "sonnet"),
+                   help="model for the agent (default: sonnet)")
+    r.add_argument("--max-cost", type=float, default=float(os.environ.get("DEJABUG_MAX_COST", "1.50")),
+                   help="stop when the agent has spent this many US dollars (default 1.50)")
     r.add_argument("--blind", action="store_true",
                    help="forbid the agent from looking the bug up (for benchmarks)")
     r.set_defaults(fn=cmd_run)

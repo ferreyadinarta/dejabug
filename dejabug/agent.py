@@ -39,7 +39,7 @@ def build_prompt(evidence: Path, url: str, test: Path, note: str = "", blind: bo
     return prompt
 
 
-def run_agent(prompt: str, workdir: Path, log: Path) -> tuple[int, dict]:
+def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budget: float | None = None) -> tuple[int, dict]:
     workdir.mkdir(parents=True, exist_ok=True)
     prompt_file = workdir / "agent_prompt.md"
     prompt_file.write_text(prompt)
@@ -60,7 +60,10 @@ def run_agent(prompt: str, workdir: Path, log: Path) -> tuple[int, dict]:
             f"Bash({py} *)", f"Bash({shlex.quote(py)} *)",
             "--add-dir", str(workdir.resolve()),
             "--output-format", "json",
+            "--model", model,
         ]
+        if budget:
+            cmd += ["--max-budget-usd", f"{budget:.2f}"]
     run = subprocess.run(cmd, cwd=workdir, capture_output=True, text=True)
     usage: dict = {}
     text = run.stdout
