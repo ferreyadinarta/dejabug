@@ -67,3 +67,19 @@ def test_action_comment_is_marked_so_it_posts_once():
     from dejabug.action import MARKER, comment_body
     body = comment_body("### Steps\n1. Click x (1.0s)\n", "https://example/run")
     assert body.startswith(MARKER) and "1. Click x" in body and "https://example/run" in body
+
+
+def test_film_skips_still_frames_and_keeps_full_size_copies(tmp_path):
+    from dejabug.ingest import film
+    frames = []
+    for i in range(30):  # 3 s at 10 fps: still, then a change at 1.5 s
+        img = np.full((120, 200, 3), 255, np.uint8)
+        if i >= 15:
+            cv2.rectangle(img, (20, 20), (120, 80), (0, 0, 0), -1)
+        path = tmp_path / f"f{i:05d}.png"
+        cv2.imwrite(str(path), img)
+        frames.append((i / 10, path))
+    film(frames, [], tmp_path / "film")
+    kept = sorted(p.name for p in (tmp_path / "film" / "frames").glob("*.jpg"))
+    assert kept == ["0000.0s.jpg", "0001.5s.jpg", "0002.5s.jpg"]  # first, the change, the last
+    assert len(list((tmp_path / "film").glob("*.jpg"))) == 1
