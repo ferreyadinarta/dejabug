@@ -13,7 +13,7 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-> **Status: early.** `dejabug steps` is ready to use. `dejabug run` (video to verified test) is experimental: see [Results so far](#results-so-far) for how often it works.
+> **Status: early.** `dejabug steps` is ready to use. `dejabug run` (video to verified test) is in beta and runs with Claude Code only: see [Results so far](#results-so-far) for how often it works.
 
 ## Steps to reproduce, from a bug video
 
