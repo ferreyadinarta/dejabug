@@ -4,7 +4,7 @@
 
 <p align="center">
 For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip on a GitHub issue.
-<br>dejabug turns the video into steps to reproduce in seconds, and into a Playwright test
+<br>dejabug turns the video into steps to reproduce in under a minute, and into a Playwright test
 <br>that fails the same way, checked against the video.
 </p>
 
@@ -13,7 +13,7 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-> **Status: early, and not reliable yet.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) found that `dejabug steps` misses most of what users do when they type, drag or use the keyboard (it found 9 of 175 actions). I'm working on that before a proper release. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
+> **Status: early.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) showed that the first version of `dejabug steps` missed most of what users do (it found 9 of 175 actions). Steps are now written by a model that watches the whole recording. On a separate set of 10 development videos, in two runs, it found the median video's actions about 63% of the time, and 64% to 71% of the steps it listed were right. The benchmark will be rerun once, on the same 20 videos, before release. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
 
 ## Steps to reproduce, from a bug video
 
@@ -21,23 +21,18 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
 dejabug steps https://github.com/<owner>/<repo>/issues/<number>    # or a local .mp4 / .mov / .webm
 ```
 
-dejabug downloads the video attached to the issue, reads it on your machine and writes numbered steps, with a close-up image of every click. It needs no app, model or account, and takes about ten seconds. Real output for a recording of an MUI Autocomplete bug:
+dejabug downloads the video attached to the issue, turns it into a film of frames every half second with what changed marked on each, and has Claude write the steps from it, with the issue text as context. It takes under a minute. Real output for [mui/material-ui#47203](https://github.com/mui/material-ui/issues/47203):
 
 ```
-1. Click "Checkboxes" (2.2s)
-   - 2.7s: a list opened: Checkboxes, The Shawshank Redemption, The Godfather, ...
-2. Click "Favorites" (2.9s)
-   - 3.1s: a list closed: The Shawshank Redemption, The Godfather, The Godfather: Part lI, ...
-3. Click "Favorites" (3.6s)
-   - 3.8s: a list opened: The Shawshank Redemption, The Godfather, The Godfather: Part lI, ...
-   - 6.3s: the list changed to: The Lord of the Rings: The Fellowship of the Ring, Star Wars: ..., Forrest Gump, ...
-4. Click "Inception" (7.9s)
-   - 8.1s: "Favorites" changed to "Inception (X)"
-   - 8.1s: the list changed to: The Shawshank Redemption, The Godfather, The Godfather: Part lI, ...
-5. Hover over "12 Angry Men" (10.2s)
+1. Click Checkboxes Favorites field (1.0s)
+2. Scroll options list in the Checkboxes popup (2.0s)
+3. Click Inception option (4.0s)
+
+Bug (4.5s): After clicking Inception with disableCloseOnSelect, the open options list jumps back
+to the top (The Shawshank Redemption) instead of preserving the scrolled position where Inception was visible
 ```
 
-The indented lines are what changed on screen. Here they show the bug: after clicking "Inception", the list jumps back to the top.
+Steps the model inferred rather than saw are marked "not sure". It uses Claude Code if you have it, or `ANTHROPIC_API_KEY`. With neither, or with `--no-ai`, dejabug falls back to simple rules that run offline for free but miss keys, drags and hidden pointers.
 
 ## A failing test, checked against the video
 
@@ -63,7 +58,7 @@ So dejabug checks its test against the video itself, and steps mode works from t
   <img src="docs/how-it-works.png" alt="bug.mp4 goes through three stages: watch turns the video into text, write has an agent write the test, verify records the test's replay and lines it up with the video. The result is REPRODUCED, FAILS_DIFFERENTLY or NOT_REPRODUCED; when it isn't reproduced, the report goes back to the agent.">
 </p>
 
-`watch` keeps the frames where the screen settles after a change (plus brief flashes, like a menu that opens and closes at once), reads them with OCR, and finds clicks by learning the shape of the mouse pointer and following it. A pointer that only rests on a row is reported as a hover, not a click. A 60-second video becomes a few dozen lines of events and one contact sheet. Steps mode stops here.
+`watch` turns the video into a film: a frame every half second, with what changed since the last frame boxed in red and the mouse pointer ringed in yellow. It also keeps the frames where the screen settles, reads them with OCR and follows the pointer to find clicks and hovers. In steps mode, Claude reads the film and the event log and drafts the steps, then a second call checks each step against the frames and removes what the app did on its own.
 
 `write` turns the clicks and typing into a draft test, one line per action in video order. A coding agent (Claude Code by default, any agent CLI works) may add steps the video implies but can't drop or reorder the drafted ones, and writes the check for the bug.
 
@@ -72,7 +67,7 @@ So dejabug checks its test against the video itself, and steps mode works from t
 ## Install
 
 ```bash
-pip install dejabug             # steps mode
+pip install dejabug             # steps mode (uses Claude Code or ANTHROPIC_API_KEY if present)
 pip install 'dejabug[run]'      # adds test mode (Playwright)
 dejabug doctor                  # checks your setup and prints the fix for anything missing
 ```
@@ -94,11 +89,13 @@ Then share a bug video and ask for a repro, or run `/dejabug bug.mov http://loca
 
 ```bash
 dejabug steps bug.mov                                      # steps to reproduce, no app needed
+dejabug steps bug.mov --note "only on Safari"              # tell the model what the reporter said
+dejabug steps bug.mov --no-ai                              # offline, rule-based steps
 dejabug run bug.mov --url http://localhost:3000            # video to verified failing test
 dejabug run bug.mov --url http://localhost:3000 --format ts   # also write a @playwright/test spec
 dejabug run bug.mov --url http://localhost:3000 --note "coupon SAVE10 fails at checkout"
 
-dejabug watch bug.mov                                      # just the event log + contact sheet
+dejabug watch bug.mov                                      # just the film, event log and contact sheet
 dejabug verify dejabug-out/bug dejabug-out/bug/repro_test.py
 dejabug test dejabug-out/bug/repro_test.py --url http://localhost:3001   # exit 1 = bug still there
 ```
@@ -124,24 +121,24 @@ dejabug run bug.mov --url http://localhost:3000 --storage-state auth.json
 
 ### Model and budget
 
-The agent uses `sonnet` by default and stops once a run has spent $1.50. Change either with `--model` and `--max-cost`, or with `DEJABUG_MODEL` and `DEJABUG_MAX_COST`.
+Steps mode uses `opus` (`--model`, or `DEJABUG_STEPS_MODEL`). Test mode's agent uses `sonnet` by default and stops once a run has spent $1.50. Change either with `--model` and `--max-cost`, or with `DEJABUG_MODEL` and `DEJABUG_MAX_COST`.
 
 ## Cost and speed
 
 | | Steps mode | Test mode (measured so far) |
 |---|---|---|
-| Time | about 10 s | about 4 min per bug |
-| Cost | free, runs locally | about $0.45 per bug with `sonnet` |
+| Time | under a minute | about 4 min per bug |
+| Cost | about $0.55 per video with `opus` (10 dev videos, 5 to 66 s long); free with `--no-ai` | about $0.45 per bug with `sonnet` |
 
-These test-mode numbers come from two runs on the development set below, not from the benchmark.
+The test-mode numbers come from two runs on the development set below, not from the benchmark.
 
-Only the "write" step uses a model. `watch` and `verify` run on your machine and cost nothing, and they take seconds to a minute for a typical recording. Every run prints what the agent spent and saves it to `result.json`.
+`watch` and `verify` run on your machine and cost nothing. Every run prints what the model spent; test mode also saves it to `result.json`.
 
 ## What leaves your machine
 
-`watch` and `verify` are local: the video, the frames and the replay never leave your computer.
+`watch` and `verify` are local. The video itself and the replay never leave your computer.
 
-The agent step sends the event log, the contact sheet, the keyframes it opens and the test output to the model provider (Anthropic, with the default Claude Code setup). If a recording shows customer data or secrets, crop or blur it before running dejabug, or point `DEJABUG_AGENT` at an agent that runs on a local model.
+Steps mode sends the film (frames every half second) and the event log to Anthropic, through Claude Code or the API. Use `--no-ai` to keep everything local. Test mode's agent sends the event log, the contact sheet, the keyframes it opens and the test output. If a recording shows customer data or secrets, crop or blur it before running dejabug, or point `DEJABUG_AGENT` at an agent that runs on a local model.
 
 ## Safety
 
@@ -178,7 +175,8 @@ What I learned so far:
 ## Limits
 
 - Web apps only. The replay runs in a browser through Playwright.
-- Right-clicks, drags and clicks on canvases or icon-only buttons are hard to read from video.
+- Keyboard shortcuts and other keys are often invisible in a recording, so steps mode misses many of them. Drags and right-clicks are found more often than before, but not reliably.
+- The bug line is much better when the model has the issue text or a `--note`; from the video alone it sometimes points at the wrong moment.
 - The app has to run somewhere dejabug can reach, in the state the video starts from. Bugs that depend on a specific account or production data need that data seeded first.
 - Tiny, blurry or heavily cropped recordings give the agent less to go on.
 
