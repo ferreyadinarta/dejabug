@@ -3,7 +3,7 @@ import cv2
 
 from dejabug.agent import build_steps_prompt
 from dejabug.ingest import _changed_boxes
-from dejabug.steps import ai_markdown
+from dejabug.steps import ai_markdown, tidy
 from dejabug import vision
 
 DATA = {
@@ -52,3 +52,12 @@ def test_changed_boxes_keep_text_and_drop_caret():
     cv2.line(b, (300, 100), (300, 118), 0, 1)                                 # small, tall: caret
     boxes = _changed_boxes(a, b)
     assert len(boxes) == 1 and boxes[0][0] < 100
+
+
+def test_tidy_joins_split_typing():
+    data = {"steps": [{"t": 1.5, "action": "click", "target": "Option 1"},
+                      {"t": 2.5, "action": "type", "target": "Option 1", "text": "fds"},
+                      {"t": 3.5, "action": "type", "target": "Option 1", "text": "fds"},
+                      {"t": 9.0, "action": "type", "target": "Option 1", "text": "x"}]}
+    steps = tidy(data)["steps"]
+    assert [s.get("text") for s in steps] == [None, "fdsfds", "x"]

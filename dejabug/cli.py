@@ -63,7 +63,7 @@ def _context(a: argparse.Namespace, video: Path) -> str:
 def _ai_steps(a: argparse.Namespace, out: Path, video: Path) -> str | None:
     from dejabug import vision
     from dejabug.agent import build_steps_prompt, run_agent
-    from dejabug.steps import ai_markdown
+    from dejabug.steps import ai_markdown, tidy
 
     target = out / "steps.json"
     target.unlink(missing_ok=True)
@@ -80,7 +80,8 @@ def _ai_steps(a: argparse.Namespace, out: Path, video: Path) -> str | None:
             return None
     else:
         usage = vision.write_steps(build_steps_prompt(out, target, _context(a, video), api=True), out, target, a.model)
-    data = json.loads(target.read_text(encoding="utf-8"))
+    data = tidy(json.loads(target.read_text(encoding="utf-8")))
+    target.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
     if usage.get("cost_usd"):
         _say(f"{DIM}model: ${usage['cost_usd']:.2f}{RESET}")
     return ai_markdown(data, a.video)
@@ -91,7 +92,8 @@ def cmd_steps(a: argparse.Namespace) -> int:
     from dejabug.steps import load, markdown
 
     video, out = _input(a)
-    ingest(video, out)
+    if not (a.reuse and (out / "events.jsonl").exists() and (out / "film").exists()):
+        ingest(video, out)
     if a.ai:
         md = _ai_steps(a, out, video)
         if md is None:
@@ -231,7 +233,8 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("-o", "--out", type=Path)
     s.add_argument("--ai", action="store_true", help="have a model write the steps from the evidence (uses Claude Code)")
     s.add_argument("--note", help="anything the reporter said about the bug")
-    s.add_argument("--model", default=os.environ.get("DEJABUG_MODEL", "sonnet"))
+    s.add_argument("--reuse", action="store_true", help="reuse what an earlier run already extracted into the output folder")
+    s.add_argument("--model", default=os.environ.get("DEJABUG_STEPS_MODEL", "opus"))
     s.add_argument("--max-cost", type=float, default=float(os.environ.get("DEJABUG_MAX_COST", "1.00")))
     s.set_defaults(fn=cmd_steps)
 

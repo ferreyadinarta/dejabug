@@ -62,7 +62,8 @@ def score(case: str, ref_dir: Path, out_dir: Path, model: str) -> dict:
     ref, listed = r.get("reference_actions") or 0, r.get("listed_actions") or 0
     return {"id": case, "matched": matched, "reference": ref, "listed": listed,
             "recall": matched / ref if ref else None, "precision": matched / listed if listed else None,
-            "bug_moment": r.get("bug_moment"), "why": r.get("why"), "cost_usd": r["cost_usd"]}
+            "bug_moment": r.get("bug_moment"), "why": r.get("why"), "matches": r.get("matches", []),
+            "cost_usd": r["cost_usd"]}
 
 
 def summary(rows: list[dict]) -> dict:

@@ -20,6 +20,8 @@ Work fast: in your first turn, Read every `film/*.jpg` sheet and `events.jsonl` 
 - Menus that open at the pointer with no left-click before them are a right-click.
 - Panning or content sliding with no scrollbar movement may be scroll or a drag on the canvas; use the pointer to decide.
 - A tooltip or hover highlight appearing where the pointer rests, with no click, is a hover. Include hovers the user seems to point at on purpose.
+- A button or tool looking selected is not proof it was clicked. List a click only when the pointer is on it, or nothing else could have caused the change. A highlight that changes while the pointer is elsewhere or mid-drag is the app doing it, and may be the bug.
+- Press, move and release is one drag. Don't add clicks before or after it for the same gesture.
 - Keyboard actions are the easiest to miss. Whenever content changes while the pointer stays away from it, ask which key did it (arrows, Tab, Enter, Escape, Delete, a shortcut).
 
 ## What to write
@@ -38,7 +40,7 @@ Save `{out}` as JSON:
 - `action` is one of: click, double_click, right_click, type, press (a key such as Enter, Backspace, Tab, Escape, or a shortcut like Cmd+B), paste, drag, select (selecting text or items by dragging), scroll, hover.
 - `target` is what a person would call the thing acted on: a visible label, or a short description ("the second paragraph", "the red rectangle", "the toolbar's bold button").
 - `text` is what was typed or pasted, or the key for `press`.
-- One step per user action, in order. Typing a word is one `type` step, not one per letter.
+- One step per user action, in order. A run of typing into one place is one `type` step with the whole text, however many frames it spans.
 - Only include an action you can see evidence for in the frames. If something changed and you can't tell which action caused it, add a step with your best guess and `"uncertain": true`, and say what you saw in `evidence`.
 - Fewer correct steps beat many guessed ones. Don't pad.
 - `bug` is the moment the user would point at as wrong, and what's wrong, in plain words. It is usually the first surprising thing the app does right after an action: something jumps, resets, vanishes, lands in the wrong place, or looks selected when it isn't. Later actions are often the user repeating it.

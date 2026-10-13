@@ -94,6 +94,21 @@ AI_VERBS = {"click": "Click", "double_click": "Double-click", "right_click": "Ri
             "hover": "Hover over"}
 
 
+def tidy(data: dict, gap: float = 2.5) -> dict:
+    """Join typing the model split across frames into one step."""
+    out: list[dict] = []
+    for s in data.get("steps", []):
+        p = out[-1] if out else None
+        if p and s.get("action") == "type" and p.get("action") == "type" and s.get("target") == p.get("target") \
+                and float(s.get("t", 0)) - float(p.get("t_end", p.get("t", 0))) <= gap:
+            p["text"] = (p.get("text") or "") + (s.get("text") or "")
+            p["t_end"] = s.get("t")
+            p["uncertain"] = bool(p.get("uncertain") or s.get("uncertain"))
+            continue
+        out.append(dict(s))
+    return {**data, "steps": out}
+
+
 def ai_markdown(data: dict, video: str) -> str:
     """Steps written by a model from the extracted evidence."""
     lines = [f"### Steps to reproduce (from `{video}`)", ""]

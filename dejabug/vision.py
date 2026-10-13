@@ -43,7 +43,9 @@ def _save(text: str, target: Path) -> None:
 def _via_claude_code(content: list[dict], model: str) -> tuple[str, dict]:
     msg = {"type": "user", "message": {"role": "user", "content": content}}
     run = subprocess.run(["claude", "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
-                          "--model", model, "--max-turns", "1"],
+                          "--model", model, "--max-turns", "1", "--tools", "", "--strict-mcp-config",
+                          "--disable-slash-commands", "--setting-sources", "",
+                          "--system-prompt", "You turn screen recordings of software bugs into reproduction steps."],
                          input=json.dumps(msg) + "\n", capture_output=True, text=True, encoding="utf-8", errors="replace")
     for line in reversed(run.stdout.splitlines()):
         try:
