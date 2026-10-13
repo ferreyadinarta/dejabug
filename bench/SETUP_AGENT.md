@@ -33,7 +33,7 @@ For each issue in your list:
    put it where dejabug writes, never pass it to dejabug.
 
 5. Run dejabug BLIND (it spawns its own agent, which must not see the issue):
-     uv run dejabug run bench/videos/<file> --url http://localhost:<BUGGY_PORT> --blind --tries 2 -o out/bench-run/<slug>
+     uv run dejabug run bench/videos/<file> --url http://localhost:<BUGGY_PORT> --blind -o out/bench-run/<slug>
    This can take 5-15 minutes. Run it in the background (nohup ... > out/bench-run/<slug>.log 2>&1 &)
    and poll for out/bench-run/<slug>/result.json (check every ~30 s with a short wait loop,
    e.g. `perl -e 'select(undef,undef,undef,30)'`). Give up after 25 minutes.
@@ -45,7 +45,7 @@ For each issue in your list:
    (exit 0 = passes on the fix = the test is specific to this bug).
 
 7. Write bench/results/<slug>.json:
-   {"id","slug","buggy_version","fixed_version","setup_notes","dejabug_verdict",
+   {"id","slug","buggy_version","fixed_version","setup_notes","dejabug_verdict","agent_cost_usd","seconds",
     "coverage","attempts_used","seconds","fixed_build_exit","bug_inferred_by_dejabug"
     (one sentence from the agent log / test docstring),"matches_real_bug" (your honest
     yes/partly/no judgement vs the issue), "notes"}
