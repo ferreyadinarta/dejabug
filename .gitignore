@@ -8,3 +8,4 @@ bench/videos/
 node_modules/
 dejabug-out/
 dist/
+docs/demo/

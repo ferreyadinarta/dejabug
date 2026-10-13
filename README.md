@@ -161,13 +161,14 @@ A case counts as reproduced only when verify says `REPRODUCED` on the buggy vers
 |---|---|---|---|
 | [mui/material-ui#47203](https://github.com/mui/material-ui/issues/47203), the reporter's own video | Reproduced on the first attempt; the test fails on 7.3.7 and passes on 7.3.8 | $0.48 | 4.6 min |
 | The same MUI bug, recorded by me | Reproduced on the first attempt; passes on 7.3.8 | $0.41 | 3.6 min |
+| Round 2: five bugs in MUI, Excalidraw and tldraw ([results](bench/results/)) | None reproduced. Four depend on drags, keyboard shortcuts or right-clicks, which dejabug can't read from video yet; in some attempts the agent was also blocked from running its own test (fixed since) | about $1.55 each | about 16 min each |
 
 **Benchmark (in progress):** 20 closed GitHub issues with an attached video, picked by a rule written down before any run ([protocol](bench/PROTOCOL.md)). A case succeeds only if the test fails on the version before the fix and passes on the version after it. The sample only includes apps that run with `npm install`, which makes it easier than real-world videos. The success rate will be published here, whatever it is.
 
 What I learned so far:
 
 - Bugs that show up on a settled screen (a list in the wrong place, the wrong text) work well.
-- A brief flash, an absence (a menu that should appear and doesn't), clicks on a canvas, and right-clicks are much harder to get from video.
+- A brief flash, an absence (a menu that should appear and doesn't), clicks on a canvas, drags, right-clicks and keyboard shortcuts are much harder to get from video. Steps mode marks these spots with "no click seen before this" instead of guessing.
 - Verifying against the video catches tests that fail for the wrong reason. It can't catch a check that tests the wrong thing, so the agent is told to assert only on something the video shows going wrong; the fixed-version check above is the final word.
 
 ## Limits

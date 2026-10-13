@@ -1,0 +1,18 @@
+{
+  "id": "tldraw/tldraw#9457",
+  "slug": "tldraw-9457",
+  "round": 2,
+  "buggy_version": "tldraw@5.3.0-next.a6e6f66f8517 (pre-fix 8212836)",
+  "fixed_version": "tldraw@5.3.0-next.d2119fd1c291 (post-fix)",
+  "setup_notes": "Reused round-1 app (Vite + React 19.2.1 + <Tldraw/>), fresh npm install. Buggy build on :5181 for the blind run; fixed build installed but never started since the verdict was not REPRODUCED.",
+  "dejabug_verdict": "NOT_REPRODUCED",
+  "classification": "failed",
+  "agent_cost_usd": 1.5365,
+  "seconds": 1042,
+  "coverage": 0.0,
+  "attempts_used": 2,
+  "fixed_build_exit": null,
+  "bug_inferred_by_dejabug": "From the test comments (agent_attempt1.log was empty): 'frame label's left edge shifts right during hover of child shape, causing the \"r\" in \"Frame\" to be obscured by the frame's left border, making it visually render as \"Flame\"'.",
+  "matches_real_bug": "no",
+  "notes": "The agent appears to have taken an OCR/visual artifact ('Flame') as the bug and never tested parenting of a shape dragged from the toolbar into a frame. Test exited 0 on the buggy build, coverage 0/3 non-context moments. Attempt 2 was cut off by the $1.50 budget ($1.54, 33 turns). Only 20 events were extracted from the video."
+}

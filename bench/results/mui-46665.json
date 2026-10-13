@@ -1,0 +1,18 @@
+{
+  "id": "mui/material-ui#46665",
+  "slug": "mui-46665",
+  "round": 2,
+  "buggy_version": "@mui/material 7.3.0",
+  "fixed_version": "@mui/material 7.3.1 (revert PR #46672)",
+  "setup_notes": "Reused round-1 app (Vite + React 19, always-open Dialog with outlined Select 'Age', options 10..100). Buggy build on :5181 only during the blind run; fixed build never started because the verdict was not REPRODUCED. A first round-2 run (18:24) was invalidated by a clamshell sleep at 18:32 (laptop on battery) and restarted at 20:46 under caffeinate; only the restart is reported.",
+  "dejabug_verdict": "FAILS_DIFFERENTLY",
+  "classification": "failed",
+  "agent_cost_usd": 1.5633,
+  "seconds": 1151,
+  "coverage": 0.35,
+  "attempts_used": 3,
+  "fixed_build_exit": null,
+  "bug_inferred_by_dejabug": "Attempt 1 summary: 'MUI Select's value reverts from 50 -> 20 at 13.2s with no user action after selecting 50 at 12.8s'.",
+  "matches_real_bug": "no",
+  "notes": "Attempt 1 test failed but replay coverage too low (FAILS_DIFFERENTLY); attempt 2 likewise (agent_attempt2.log empty, no summary); attempt 3 aborted when the $1.50 budget was exhausted ($1.56 spent, 35 turns). Attempt-1 agent ended with 'I need shell approval to run it', i.e. it could not execute its own test in that attempt. The real bug (single click on the Select opens the menu and immediately selects/ closes) was not identified; the agent read it as a spurious value revert."
+}

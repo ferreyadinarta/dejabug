@@ -1,0 +1,18 @@
+{
+  "id": "excalidraw/excalidraw#10840",
+  "slug": "excalidraw-10840",
+  "round": 2,
+  "buggy_version": "@excalidraw/excalidraw 0.18.0-2874f9e (1 commit behind fix cae9d2b)",
+  "fixed_version": "@excalidraw/excalidraw 0.18.0-60b2758 (1 commit ahead of fix cae9d2b)",
+  "setup_notes": "Reused round-1 app (Vite + React 19 + <Excalidraw> with one YouTube embeddable preloaded), fresh npm install. Buggy build on :5181 for the blind run; fixed build installed but never started since the verdict was not REPRODUCED.",
+  "dejabug_verdict": "NOT_REPRODUCED",
+  "classification": "failed",
+  "agent_cost_usd": 1.5534,
+  "seconds": 940,
+  "coverage": 0.33,
+  "attempts_used": 3,
+  "fixed_build_exit": null,
+  "bug_inferred_by_dejabug": "Attempt 1 summary: 'Clicking \"Paste\" from the Excalidraw right-click context menu activates View Mode, hiding the drawing toolbar and removing edit capabilities.'",
+  "matches_real_bug": "no",
+  "notes": "Attempts 1 and 2 both NOT_REPRODUCED (tests exited 0 on the buggy build); attempt 3 aborted when the $1.50 budget ran out ($1.55, 42 turns). The agent never used the laser pointer (K) or checked the active tool after leaving view mode. The attempt-1 agent reported 'User's permissions are blocking Python execution', so it could not run its own test inside the attempt."
+}

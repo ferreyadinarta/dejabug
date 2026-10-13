@@ -1,0 +1,18 @@
+{
+  "id": "excalidraw/excalidraw#9423",
+  "slug": "excalidraw-9423",
+  "round": 2,
+  "buggy_version": "@excalidraw/excalidraw 0.18.0-195a743 (pre-fix 6e655cd)",
+  "fixed_version": "@excalidraw/excalidraw 0.18.0-a30e1b2 (post-fix)",
+  "setup_notes": "Reused round-1 app (Vite + React 19 + <Excalidraw>), fresh npm install. Buggy build on :5181 for the blind run; fixed build installed but never started since the verdict was not REPRODUCED.",
+  "dejabug_verdict": "NOT_REPRODUCED",
+  "classification": "failed",
+  "agent_cost_usd": 1.5901,
+  "seconds": 960,
+  "coverage": 0.56,
+  "attempts_used": 2,
+  "fixed_build_exit": null,
+  "bug_inferred_by_dejabug": "From the test comments (agent_attempt1.log was empty): 'after the user dragged the frame upward (Y went from -1663 to -1948), the two rectangle children stayed at their original Y positions instead of moving with the frame'.",
+  "matches_real_bug": "partly",
+  "notes": "The agent inferred the right symptom (frame children don't follow the frame's Y change) but read the Y change as a canvas drag rather than an edit in the stats/properties panel, so its test dragged the frame, children moved by the same -150 delta, and the test exited 0 on the buggy build. Attempt 2 was cut off when the $1.50 budget ran out ($1.59, 36 turns). No agent summary was written to agent_attempt1.log."
+}
