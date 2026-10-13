@@ -98,20 +98,23 @@ def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budg
             "claude", "-p", prompt,
             "--permission-mode", "acceptEdits",
             "--allowedTools", "Read", "Write", "Edit", "Glob", "Grep",
-            f"Bash({py} *)", f"Bash({shlex.quote(py)} *)", *extra_tools,
+            "Bash(python *)", "Bash(python3 *)", f"Bash({py} *)", *extra_tools,
             "--add-dir", str(workdir.resolve()),
             "--output-format", "json",
             "--model", model,
         ]
         if budget:
             cmd += ["--max-budget-usd", f"{budget:.2f}"]
-    run = subprocess.run(cmd, cwd=workdir, capture_output=True, text=True)
+    # `python` in the agent's shell is dejabug's own interpreter; no long paths to quote wrongly
+    env = {**os.environ, "PATH": os.path.dirname(sys.executable) + os.pathsep + os.environ.get("PATH", "")}
+    run = subprocess.run(cmd, cwd=workdir, capture_output=True, text=True, env=env)
+    log.with_suffix(".json").write_text(run.stdout)
     usage: dict = {}
     text = run.stdout
     if not custom:
         try:
             data = json.loads(run.stdout)
-            text = data.get("result", "")
+            text = data.get("result") or f"(no summary: {data.get('subtype', 'unknown')}; see {log.with_suffix('.json').name})"
             u = data.get("usage") or {}
             usage = {"cost_usd": data.get("total_cost_usd") or 0.0,
                      "input_tokens": sum(u.get(k, 0) for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")),

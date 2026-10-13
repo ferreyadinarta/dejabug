@@ -35,7 +35,7 @@ dejabug already drafted `{test}` from the video: one line per user action, in or
 
 1. Read the events and look at the contact sheet. Write down, briefly: the user's steps, then what went wrong compared to what they expected.
    The bug is usually the surprising change right after the user acts: something jumps, resets, vanishes, or an error appears. Clicks after that are often the user retrying or reacting to it. `hover` events are the pointer resting on something, not clicks.
-2. Run the draft, complete it, and run it again: `{python} {test}`
+2. Run the draft, complete it, and run it again. Your shell starts in the test's folder; run it exactly as `python repro_test.py`.
 3. Iterate until the steps run cleanly and the failure comes from your assertion about the bug, not from a locator error or a timeout.
 4. If after honest effort the app does not show the bug, keep the test asserting the correct behaviour and let it exit 0. Don't force a failure.
 
