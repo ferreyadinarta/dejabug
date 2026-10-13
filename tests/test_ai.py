@@ -32,6 +32,7 @@ def test_api_prompt_has_no_file_instructions(tmp_path):
     cli = build_steps_prompt(tmp_path, tmp_path / "steps.json", note="happens on Safari")
     api = build_steps_prompt(tmp_path, tmp_path / "steps.json", note="happens on Safari", api=True)
     assert "Save `" in cli and "Save `" not in api
+    assert "Read every" in cli and "Read every" not in api
     assert "happens on Safari" in api
     assert '"steps": [' in api  # doubled braces collapsed
 

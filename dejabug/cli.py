@@ -61,29 +61,28 @@ def _context(a: argparse.Namespace, video: Path) -> str:
 
 
 def _ai_steps(a: argparse.Namespace, out: Path, video: Path) -> str | None:
+    from dejabug import vision
     from dejabug.agent import build_steps_prompt, run_agent
     from dejabug.steps import ai_markdown
 
     target = out / "steps.json"
     target.unlink(missing_ok=True)
-    use_cli = bool(shutil.which("claude") or os.environ.get("DEJABUG_AGENT"))
-    if not use_cli and not os.environ.get("ANTHROPIC_API_KEY"):
+    custom = os.environ.get("DEJABUG_AGENT")
+    if not custom and not vision.available():
         _say(f"{RED}--ai needs Claude Code (https://claude.com/claude-code) or ANTHROPIC_API_KEY{RESET}")
         return None
-    _say(f"{DIM}a model is reading the evidence...{RESET}")
-    if not use_cli:
-        from dejabug.vision import write_steps_api
-        usage = write_steps_api(build_steps_prompt(out, target, _context(a, video), api=True), out, target, a.model)
-        _say(f"{DIM}model: {usage['input_tokens']} tokens in, {usage['output_tokens']} out{RESET}")
-        return ai_markdown(json.loads(target.read_text(encoding="utf-8")), a.video)
-    code, usage = run_agent(build_steps_prompt(out, target, _context(a, video)), out, out / "agent_steps.log", a.model,
-                            a.max_cost)
-    if not target.exists():
-        _say(f"{RED}no steps written (exit {code}); see {out / 'agent_steps.log'}{RESET}")
-        return None
+    _say(f"{DIM}a model is reading the film...{RESET}")
+    if custom:  # other agents read the files themselves
+        code, usage = run_agent(build_steps_prompt(out, target, _context(a, video)), out, out / "agent_steps.log",
+                                a.model, a.max_cost)
+        if not target.exists():
+            _say(f"{RED}no steps written (exit {code}); see {out / 'agent_steps.log'}{RESET}")
+            return None
+    else:
+        usage = vision.write_steps(build_steps_prompt(out, target, _context(a, video), api=True), out, target, a.model)
     data = json.loads(target.read_text(encoding="utf-8"))
-    if usage.get("turns"):
-        _say(f"{DIM}model: ${usage['cost_usd']:.2f}, {usage['turns']} turns{RESET}")
+    if usage.get("cost_usd"):
+        _say(f"{DIM}model: ${usage['cost_usd']:.2f}{RESET}")
     return ai_markdown(data, a.video)
 
 

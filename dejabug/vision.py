@@ -1,4 +1,4 @@
-"""Steps from the evidence in one Claude API call, for people without Claude Code (needs ANTHROPIC_API_KEY)."""
+"""Steps from the evidence in one model call: through Claude Code if installed, else the API (ANTHROPIC_API_KEY)."""
 
 from __future__ import annotations
 
@@ -6,6 +6,8 @@ import base64
 import json
 import os
 import re
+import shutil
+import subprocess
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -31,22 +33,52 @@ def _content(prompt: str, evidence: Path) -> list[dict]:
     return parts
 
 
-def write_steps_api(prompt: str, evidence: Path, target: Path, model: str = "sonnet") -> dict:
-    """Ask the API for the steps JSON and save it to `target`; returns token usage."""
-    key = os.environ["ANTHROPIC_API_KEY"]
-    body = {"model": MODELS.get(model, model), "max_tokens": 4000,
-            "messages": [{"role": "user", "content": _content(prompt, evidence)}]}
+def _save(text: str, target: Path) -> None:
+    m = re.search(r"\{.*\}", text, re.S)
+    if not m:
+        raise SystemExit(f"the model didn't return steps: {text[:300]}")
+    target.write_text(json.dumps(json.loads(m.group(0)), indent=1, ensure_ascii=False), encoding="utf-8")
+
+
+def _via_claude_code(content: list[dict], model: str) -> tuple[str, dict]:
+    msg = {"type": "user", "message": {"role": "user", "content": content}}
+    run = subprocess.run(["claude", "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
+                          "--model", model, "--max-turns", "1"],
+                         input=json.dumps(msg) + "\n", capture_output=True, text=True, encoding="utf-8", errors="replace")
+    for line in reversed(run.stdout.splitlines()):
+        try:
+            d = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if d.get("type") == "result":
+            u = d.get("usage") or {}
+            return d.get("result") or "", {"cost_usd": d.get("total_cost_usd") or 0.0,
+                                           "output_tokens": u.get("output_tokens", 0)}
+    raise SystemExit(f"Claude Code gave no result: {run.stderr[-300:]}")
+
+
+def _via_api(content: list[dict], model: str) -> tuple[str, dict]:
+    body = {"model": MODELS.get(model, model), "max_tokens": 4000, "messages": [{"role": "user", "content": content}]}
     req = urllib.request.Request(API, data=json.dumps(body).encode(), method="POST", headers={
-        "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"})
+        "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01",
+        "content-type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=300) as r:
             data = json.loads(r.read())
     except urllib.error.HTTPError as e:
         raise SystemExit(f"Claude API error {e.code}: {e.read().decode('utf-8', 'replace')[:300]}") from None
-    text = "".join(b.get("text", "") for b in data.get("content", []))
-    m = re.search(r"\{.*\}", text, re.S)
-    if not m:
-        raise SystemExit(f"the model didn't return steps: {text[:300]}")
-    target.write_text(json.dumps(json.loads(m.group(0)), indent=1, ensure_ascii=False), encoding="utf-8")
     u = data.get("usage") or {}
-    return {"input_tokens": u.get("input_tokens", 0), "output_tokens": u.get("output_tokens", 0)}
+    return "".join(b.get("text", "") for b in data.get("content", [])), {
+        "input_tokens": u.get("input_tokens", 0), "output_tokens": u.get("output_tokens", 0)}
+
+
+def available() -> bool:
+    return bool(shutil.which("claude") or os.environ.get("ANTHROPIC_API_KEY"))
+
+
+def write_steps(prompt: str, evidence: Path, target: Path, model: str = "sonnet") -> dict:
+    """Send the film and events in one message, save the steps JSON to `target`, return usage."""
+    content = _content(prompt, evidence)
+    text, usage = _via_claude_code(content, model) if shutil.which("claude") else _via_api(content, model)
+    _save(text, target)
+    return usage

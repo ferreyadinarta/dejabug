@@ -84,6 +84,9 @@ def build_steps_prompt(evidence: Path, out: Path, note: str = "", api: bool = Fa
     if api:  # one-shot call: the sheets and events are attached, nothing else can be opened
         template = (template.replace("Save `{out}` as JSON:", "Reply with only this JSON:")
                     .replace("Write only the JSON file, then reply with one line: how many steps and the bug moment.\n", "")
+                    .replace("Work fast: in your first turn, Read every `film/*.jpg` sheet and `events.jsonl` together "
+                             "(several Read calls in one message). Then open the full-size frames you need, again several "
+                             "at once. Don't open files one by one.\n\n", "")
                     .replace("## Evidence in {evidence}", "## Evidence (attached below: the film sheets, then events.jsonl; "
                              "full-size frames, keyframes and click close-ups are not available)"))
     return (template.replace("{{", "{").replace("}}", "}")
