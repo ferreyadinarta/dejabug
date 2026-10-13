@@ -25,6 +25,7 @@ The app from the video is running at {url}. You may open it and inspect the DOM.
 dejabug already drafted `{test}` from the video: one line per user action, in order, with what happened on screen as comments. It uses the harness helpers `click(page, label)` and `hover(page, label)`, which find an element by its visible label.
 
 - **Don't remove or reorder the drafted actions.** You may add steps the video implies but the draft misses (for example a list that opened or closed with no click before it means the user clicked something), and fix a step whose label doesn't match the page.
+- Read the notes for steps the video implies: a list or menu already open at the very start was opened before recording began (open it first); a list that closes and opens again with no click in between means the user clicked the field to close and reopen it. Add those clicks.
 - Lines marked TODO need you: a click on something without text (open the close-up image named in the comment), and the final check.
 - At the end, measure the thing that went wrong, print the measured values, and return `REPRODUCED` (1) if the wrong behaviour happened, printing `ASSERTION FAILED: <what happened> ; expected <what should have happened>`; `NOT_REPRODUCED` (0) if the correct behaviour happened; `SETUP_ERROR` (2) if you couldn't reach the state in the video.
 - Keep `open_page`: it records the replay that dejabug compares with the video.
