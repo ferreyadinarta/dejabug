@@ -368,20 +368,23 @@ def ocr_flicker(a: str, b: str) -> bool:
 
 
 def nearest_label(x: float, y: float, boxes: list[Box], limit: float = 70) -> str | None:
+    """What a person would say they clicked."""
+    for b in boxes:
+        if b.x <= x <= b.x + b.w and b.y <= y <= b.y + b.h:
+            return b.text
+    # Rows in lists and menus are clickable across their full width while their
+    # text sits at the left, so text on the pointer's own row wins over anything
+    # above or below it, however close.
+    row = [b for b in boxes if b.y - b.h * 0.5 <= y <= b.y + b.h * 1.5 and b.x < x]
+    if row:
+        return min(row, key=lambda b: (abs(b.cy - y), -b.x)).text
     best, dist = None, limit
     for b in boxes:
-        # distance from point to box edge (0 if inside)
         dx = max(b.x - x, 0, x - (b.x + b.w))
         dy = max(b.y - y, 0, y - (b.y + b.h))
-        d = float(np.hypot(dx, dy * 2.5))  # rows run sideways: text on the same row wins
+        d = float(np.hypot(dx, dy * 2.5))
         if d < dist:
             best, dist = b.text, d
-    if best is None:
-        # Rows in lists and menus are clickable across their full width, while
-        # their text sits at the left. Fall back to text on the same row.
-        row = [b for b in boxes if abs(b.cy - y) < max(16, b.h * 1.6) and b.x < x]
-        if row:
-            best = min(row, key=lambda b: (abs(b.cy - y), -b.x)).text
     return best
 
 

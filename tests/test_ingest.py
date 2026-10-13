@@ -96,3 +96,48 @@ def test_a_patch_changing_in_place_is_not_the_pointer():
     cur = prev.copy()
     cur[50:66, 50:60] = 0  # a checkbox ticking: change in one spot only
     assert pointer_move(prev, cur, [(55, 58)], None) is None
+
+
+def _arrow():
+    a = np.zeros((18, 12), np.uint8)
+    for r in range(18):
+        a[r, : min(12, r // 1 + 1)] = 255  # white wedge
+    a[:, 0] = 0  # dark outline on the left edge
+    return a
+
+
+def _scene(bg_shift, pointer_at=None):
+    rng = np.random.default_rng(0)
+    rows = (rng.integers(40, 90, size=(400, 1)) * np.ones((1, 400))).astype(np.uint8)
+    img = np.roll(rows, bg_shift, axis=0)  # a "list" that scrolls
+    if pointer_at:
+        x, y = pointer_at
+        arrow = _arrow()
+        region = img[y:y + 18, x:x + 12]
+        img[y:y + 18, x:x + 12] = np.where(arrow > 0, arrow, region)
+    return img
+
+
+def test_pointer_shape_is_learned_from_a_clean_move():
+    from dejabug.ingest import learn_shape
+
+    prev, cur = _scene(0, (100, 100)), _scene(0, (200, 150))
+    shape = learn_shape(prev, cur, (206, 159))
+    assert shape is not None
+    assert shape.mask.any()
+
+
+def test_learned_shape_is_found_while_the_background_scrolls():
+    from dejabug.ingest import find_shape, learn_shape
+
+    shape = learn_shape(_scene(0, (100, 100)), _scene(0, (200, 150)), (206, 159))
+    later = _scene(37, (260, 220))  # list scrolled by 37 px, pointer moved
+    found = find_shape(later, [shape], (200, 150))
+    assert found is not None
+    # The arrow's tip is its top-left white pixel: column 1, row 1 of the drawing.
+    assert abs(found[0] - 261) <= 2 and abs(found[1] - 221) <= 2
+
+
+def test_click_label_prefers_the_same_row_over_a_long_title_below():
+    rows = [box("Inception", 120, 270, w=90, h=24), box("The Lord of the Rings: The Two Towers", 120, 302, w=320, h=24)]
+    assert nearest_label(300, 284, rows) == "Inception"
