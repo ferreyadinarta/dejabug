@@ -269,7 +269,7 @@ def scan(frames: list[tuple[float, Path]]):
     last_t, last_path = frames[-1]
     if keys[-1].path != last_path:
         keys.append(Keyframe(last_t, last_path, burst_start))
-    return keys, track
+    return keys, track, grays
 
 
 # ---------------------------------------------------------------- OCR
@@ -560,6 +560,91 @@ def contact_sheet(keys: list[Keyframe], dest: Path, cols: int = 4) -> None:
     cv2.imwrite(str(dest), np.vstack(rows))
 
 
+DRAG_MIN = 40  # px the pointer must travel for a drag
+
+
+def _movements(track) -> list[tuple[int, int]]:
+    """(start, end) frame indices of each stretch where the pointer travelled."""
+    out, start = [], None
+    for i in range(1, len(track)):
+        a, b = track[i - 1], track[i]
+        moving = a[1] is not None and b[1] is not None and np.hypot(b[1] - a[1], b[2] - a[2]) > 2
+        if moving and start is None:
+            start = i - 1
+        elif not moving and start is not None:
+            out.append((start, i))
+            start = None
+    if start is not None:
+        out.append((start, len(track) - 1))
+    return out
+
+
+def _region(img: np.ndarray, x: float, y: float, r: int = 40) -> np.ndarray | None:
+    x, y = int(x), int(y)
+    if x < r or y < r or x + r > img.shape[1] or y + r > img.shape[0]:
+        return None
+    return img[y - r:y + r, x - r:x + r].astype(np.float32)
+
+
+def _local_change(before: np.ndarray, after: np.ndarray, path: list[tuple[float, float]], r: int = 45) -> bool:
+    """True if at least half of what changed lies near the pointer's path."""
+    _, changed = cv2.threshold(cv2.absdiff(before, after), 25, 255, cv2.THRESH_BINARY)
+    total = int(np.count_nonzero(changed))
+    if total == 0 or len(path) < 2:
+        return False
+    corridor = np.zeros_like(changed)
+    pts = np.array([[int(x), int(y)] for x, y in path], np.int32)
+    cv2.polylines(corridor, [pts], False, 255, thickness=2 * r)
+    return np.count_nonzero(changed & corridor) / total >= 0.5
+
+
+def _stroke_at(diff: np.ndarray, x: float, y: float, off: int = 20) -> bool:
+    """Ink is a thin line: changed on the path, unchanged a little to either side."""
+    def mean(cx, cy):
+        cx, cy = int(cx), int(cy)
+        patch = diff[max(cy - 3, 0):cy + 4, max(cx - 3, 0):cx + 4]
+        return float(patch.mean()) if patch.size else 0.0
+    if mean(x, y) <= 20:
+        return False
+    sides = [mean(x + off, y), mean(x - off, y), mean(x, y + off), mean(x, y - off)]
+    return sum(v < 10 for v in sides) >= 2
+
+
+def detect_drags(grays, track, keys) -> list[dict]:
+    """A drag moves something with the pointer, or leaves a lasting mark along its path."""
+    drags = []
+    for s, e in _movements(track):
+        (t0, x0, y0), (_, x1, y1) = track[s], track[e]
+        if np.hypot(x1 - x0, y1 - y0) < DRAG_MIN or track[e][0] - t0 > 6:
+            continue
+        before, after = grays[max(s - 1, 0)], grays[min(e + 1, len(grays) - 1)]
+        path = [(x, y) for _, x, y in track[s:e + 1] if x is not None]
+        if not _local_change(before, after, path):
+            continue  # most of the change is elsewhere: a menu or page changed, not a drag
+        moved = False
+        a, b, left = _region(before, x0, y0), _region(after, x1, y1), _region(after, x0, y0)
+        if a is not None and b is not None and left is not None and a.std() > 12:
+            moved = _same(a, b) > 0.85 and _same(a, left) < 0.6
+        diff = cv2.absdiff(before, after)
+        inked = len(path) >= 3 and sum(_stroke_at(diff, x, y) for x, y in path) / len(path) >= 0.6
+        if not (moved or inked):
+            continue
+        prior = [k for k in keys if k.t <= t0] or keys[:1]
+        boxes = prior[-1].boxes
+        drags.append({"t": round(t0, 1), "type": "drag", "xy": [round(x0), round(y0)], "to": [round(x1), round(y1)],
+                      "label": nearest_label(x0, y0, boxes), "label_to": nearest_label(x1, y1, boxes),
+                      "how": "moved" if moved else "drew"})
+    return drags
+
+
+def add_drags(events: list[dict], drags: list[dict]) -> list[dict]:
+    """Drags replace the 'click' that their starting press looks like."""
+    def starts_drag(e: dict) -> bool:
+        return e["type"] in ("click", "hover") and any(
+            abs(d["t"] - e["t"]) <= 0.6 and np.hypot(d["xy"][0] - e["xy"][0], d["xy"][1] - e["xy"][1]) < 30 for d in drags)
+    return sorted([e for e in events if not starts_drag(e)] + drags, key=lambda e: e["t"])
+
+
 def zoom_clicks(events: list[dict], frames: list[tuple[float, Path]], out: Path, half: int = 90) -> None:
     """Save a close-up of each click so the agent can see icon buttons with no text."""
     zdir = out / "clicks"
@@ -590,7 +675,7 @@ def ingest(video: Path, out: Path) -> list[dict]:
     frames = extract_frames(video, tmp)
     if not frames:
         sys.exit(f"no frames extracted from {video}")
-    keys, track = scan(frames)
+    keys, track, grays = scan(frames)
 
     kdir = out / "keyframes"
     if kdir.exists():
@@ -604,6 +689,8 @@ def ingest(video: Path, out: Path) -> list[dict]:
         k.boxes = ocr(dst, W, H)
 
     events = describe(keys, track)
+    if os.environ.get("DEJABUG_DRAGS") == "1":  # experimental: still finds drags that didn't happen
+        events = add_drags(events, detect_drags(grays, track, keys))
     zoom_clicks(events, frames, out)
     with open(out / "events.jsonl", "w") as f:
         for e in events:

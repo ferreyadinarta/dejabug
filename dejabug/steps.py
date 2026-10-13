@@ -65,10 +65,22 @@ def _drop_page_context(events: list[dict]) -> list[dict]:
     return [e for e in events if not (e["type"] == "text_appeared" and per_t[e["t"]] >= 3)]
 
 
+UNSEEN = "no click seen before this: a drag, right-click or keyboard shortcut may have happened here"
+BIG = ("panel_opened", "panel_closed", "content_replaced", "error_shown", "nav")
+
+
 def steps_from(events: list[dict]) -> list[Step]:
     out: list[Step] = []
+    last_action = -9.0
+    flagged: set[float] = set()
     for e in sorted(_merge_list_swaps(_drop_page_context(events)), key=lambda e: e["t"]):
+        if e["type"] in BIG and e["t"] - last_action > 1.5 and e["t"] > 0.5 and e["t"] not in flagged:
+            flagged.add(e["t"])
+            out.append(Step(e["t"], "note", None, UNSEEN))
+        if e["type"] == "hover" and not e.get("label"):
+            continue  # a hover over nothing nameable tells the reader nothing
         if e["type"] in ACTIONS:
+            last_action = e["t"]
             target = e.get("label")
             text = e.get("text", "") if e["type"] == "type" else ""
             out.append(Step(e["t"], e["type"], target, text, e.get("zoom")))
