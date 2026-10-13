@@ -42,11 +42,16 @@ def _get(url: str, token: str | None = None, api: bool = False) -> bytes:
         return r.read()
 
 
-def issue_text(owner: str, repo: str, num: str) -> str:
+def issue_text(owner: str, repo: str, num: str, save: Path | None = None) -> str:
     """The issue body from the API, falling back to the issue's web page when the API refuses."""
     token = github_token()
     try:
-        return json.loads(_get(f"https://api.github.com/repos/{owner}/{repo}/issues/{num}", token, api=True)).get("body") or ""
+        issue = json.loads(_get(f"https://api.github.com/repos/{owner}/{repo}/issues/{num}", token, api=True))
+        body = issue.get("body") or ""
+        if save:  # context for the model that writes steps
+            save.parent.mkdir(parents=True, exist_ok=True)
+            save.write_text(f"# {issue.get('title', '')}\n\n{body}", encoding="utf-8")
+        return body
     except urllib.error.HTTPError as api_err:
         try:
             return _get(f"https://github.com/{owner}/{repo}/issues/{num}", token).decode("utf-8", "replace")
@@ -73,7 +78,7 @@ def resolve(arg: str, workdir: Path) -> tuple[Path, str]:
     dest = workdir / name / "video.mp4"
     if dest.exists():
         return dest, name
-    urls = list(dict.fromkeys(VIDEO_URL.findall(issue_text(owner, repo, num))))
+    urls = list(dict.fromkeys(VIDEO_URL.findall(issue_text(owner, repo, num, dest.parent / "issue.md"))))
     if not urls:
         raise SystemExit(f"no video found in {arg}")
     dest.parent.mkdir(parents=True, exist_ok=True)

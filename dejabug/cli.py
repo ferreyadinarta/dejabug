@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -44,7 +45,22 @@ def cmd_watch(a: argparse.Namespace) -> int:
     return 0
 
 
-def _ai_steps(a: argparse.Namespace, out: Path) -> str | None:
+MAX_ISSUE_CHARS = 4000
+
+
+def _context(a: argparse.Namespace, video: Path) -> str:
+    """The reporter's note, or the issue's title and text when the video came from an issue link."""
+    issue = video.parent / "issue.md"
+    if a.note:
+        return f"What the reporter said: {a.note}"
+    if not issue.exists():
+        return ""
+    text = re.sub(r"https?://\S+", "", issue.read_text(encoding="utf-8"))[:MAX_ISSUE_CHARS]
+    return ("The issue the video came from is below. Use it to understand the bug and name things, "
+            f"but list only actions the video shows.\n\n<issue>\n{text}\n</issue>")
+
+
+def _ai_steps(a: argparse.Namespace, out: Path, video: Path) -> str | None:
     from dejabug.agent import build_steps_prompt, run_agent
     from dejabug.steps import ai_markdown
 
@@ -57,10 +73,10 @@ def _ai_steps(a: argparse.Namespace, out: Path) -> str | None:
     _say(f"{DIM}a model is reading the evidence...{RESET}")
     if not use_cli:
         from dejabug.vision import write_steps_api
-        usage = write_steps_api(build_steps_prompt(out, target, a.note or "", api=True), out, target, a.model)
+        usage = write_steps_api(build_steps_prompt(out, target, _context(a, video), api=True), out, target, a.model)
         _say(f"{DIM}model: {usage['input_tokens']} tokens in, {usage['output_tokens']} out{RESET}")
         return ai_markdown(json.loads(target.read_text(encoding="utf-8")), a.video)
-    code, usage = run_agent(build_steps_prompt(out, target, a.note or ""), out, out / "agent_steps.log", a.model,
+    code, usage = run_agent(build_steps_prompt(out, target, _context(a, video)), out, out / "agent_steps.log", a.model,
                             a.max_cost)
     if not target.exists():
         _say(f"{RED}no steps written (exit {code}); see {out / 'agent_steps.log'}{RESET}")
@@ -78,7 +94,7 @@ def cmd_steps(a: argparse.Namespace) -> int:
     video, out = _input(a)
     ingest(video, out)
     if a.ai:
-        md = _ai_steps(a, out)
+        md = _ai_steps(a, out, video)
         if md is None:
             return 1
     else:

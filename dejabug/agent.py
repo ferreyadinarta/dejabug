@@ -89,7 +89,7 @@ def build_steps_prompt(evidence: Path, out: Path, note: str = "", api: bool = Fa
     return (template.replace("{{", "{").replace("}}", "}")
             .replace("{evidence}", str(evidence.resolve()))
             .replace("{out}", str(out.resolve()))
-            .replace("{note}", f"\nWhat the reporter said: {note}\n" if note else ""))
+            .replace("{note}", f"\n{note}\n" if note else ""))
 
 
 def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budget: float | None = None,
