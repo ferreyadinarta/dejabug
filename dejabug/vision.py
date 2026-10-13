@@ -84,8 +84,8 @@ def _ask(content: list[dict], model: str) -> tuple[str, dict]:
     return _via_claude_code(content, model) if shutil.which("claude") else _via_api(content, model)
 
 
-def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", drafts: int = 2) -> dict:
-    """Draft the steps from the film (twice, independently), then a checking call reconciles the drafts with the frames."""
+def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", drafts: int = 1) -> dict:
+    """Draft the steps from the film, then a checking call corrects the draft against the frames."""
     content = _content(prompt, evidence)
     with ThreadPoolExecutor(drafts) as pool:
         results = list(pool.map(lambda _: _ask(content, model), range(drafts)))
@@ -103,6 +103,9 @@ def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", 
         raise SystemExit("the model didn't return steps")
     template = resources.files("dejabug").joinpath("prompts/check_steps.md").read_text(encoding="utf-8")
     joined = "\n\n".join(f"Draft {n}:\n\n```json\n{t}\n```" for n, t in enumerate(texts, 1))
+    if len(texts) > 1:  # more drafts: agreement is a signal
+        template = template.replace("Write one corrected list.", "Write one corrected list. Steps the drafts agree on are "
+                                    "likely right; steps only one draft has need clear support in the frames.")
     text, more = _ask(_content(template.replace("{drafts}", joined), evidence, events=False), model)
     _save(text, target)
     return {k: usage.get(k, 0) + more.get(k, 0) for k in usage}
