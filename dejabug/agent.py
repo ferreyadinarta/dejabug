@@ -79,6 +79,14 @@ def build_port_prompt(test: Path, spec: Path, url: str) -> str:
             .replace("{pw_version}", playwright_version()))
 
 
+def build_steps_prompt(evidence: Path, out: Path, note: str = "") -> str:
+    template = resources.files("dejabug").joinpath("prompts/write_steps.md").read_text(encoding="utf-8")
+    return (template.replace("{{", "{").replace("}}", "}")
+            .replace("{evidence}", str(evidence.resolve()))
+            .replace("{out}", str(out.resolve()))
+            .replace("{note}", f"\nWhat the reporter said: {note}\n" if note else ""))
+
+
 def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budget: float | None = None,
               extra_tools: tuple[str, ...] = ()) -> tuple[int, dict]:
     workdir.mkdir(parents=True, exist_ok=True)

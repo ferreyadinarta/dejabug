@@ -544,6 +544,18 @@ def merge_typing(events: list[dict]) -> list[dict]:
 
 # ---------------------------------------------------------------- output
 
+def timeline_sheets(frames: list[tuple[float, Path]], dest: Path, per_second: int = 1, per_sheet: int = 12) -> None:
+    """One frame per second in grids, for changes that never settle (typing, dragging)."""
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir()
+    step = max(1, round(SAMPLE_FPS / per_second))
+    picked = frames[::step]
+    for n in range(0, len(picked), per_sheet):
+        chunk = [Keyframe(t, path) for t, path in picked[n:n + per_sheet]]
+        contact_sheet(chunk, dest / f"{chunk[0].t:06.1f}s-{chunk[-1].t:06.1f}s.png", cols=4)
+
+
 def contact_sheet(keys: list[Keyframe], dest: Path, cols: int = 4) -> None:
     thumbs = []
     for k in keys:
@@ -700,6 +712,7 @@ def ingest(video: Path, out: Path) -> list[dict]:
             if x is not None:
                 f.write(json.dumps({"t": round(t, 1), "xy": [round(x), round(y)]}) + "\n")
     contact_sheet(keys, out / "contact_sheet.png")
+    timeline_sheets(frames, out / "timeline")
     shutil.rmtree(tmp)
     print(f"{len(frames)} frames -> {len(keys)} keyframes -> {len(events)} events  ({out})")
     return events

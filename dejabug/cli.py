@@ -42,13 +42,36 @@ def cmd_watch(a: argparse.Namespace) -> int:
     return 0
 
 
+def _ai_steps(a: argparse.Namespace, out: Path) -> str | None:
+    from dejabug.agent import build_steps_prompt, run_agent
+    from dejabug.steps import ai_markdown
+
+    target = out / "steps.json"
+    target.unlink(missing_ok=True)
+    _say(f"{DIM}a model is reading the evidence...{RESET}")
+    code, usage = run_agent(build_steps_prompt(out, target, a.note or ""), out, out / "agent_steps.log", a.model,
+                            a.max_cost)
+    if not target.exists():
+        _say(f"{RED}no steps written (exit {code}); see {out / 'agent_steps.log'}{RESET}")
+        return None
+    data = json.loads(target.read_text(encoding="utf-8"))
+    if usage.get("turns"):
+        _say(f"{DIM}model: ${usage['cost_usd']:.2f}, {usage['turns']} turns{RESET}")
+    return ai_markdown(data, a.video)
+
+
 def cmd_steps(a: argparse.Namespace) -> int:
     from dejabug.ingest import ingest
     from dejabug.steps import load, markdown
 
     video, out = _input(a)
     ingest(video, out)
-    md = markdown(load(out), a.video)
+    if a.ai:
+        md = _ai_steps(a, out)
+        if md is None:
+            return 1
+    else:
+        md = markdown(load(out), a.video)
     (out / "steps.md").write_text(md, encoding="utf-8")
     _say(md)
     _say(f"{DIM}saved to {out / 'steps.md'}; close-ups of each click are in {out / 'clicks'}{RESET}")
@@ -180,6 +203,10 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("steps", help="video -> written steps to reproduce (no app needed)")
     s.add_argument("video", help="video file or GitHub issue link")
     s.add_argument("-o", "--out", type=Path)
+    s.add_argument("--ai", action="store_true", help="have a model write the steps from the evidence (uses Claude Code)")
+    s.add_argument("--note", help="anything the reporter said about the bug")
+    s.add_argument("--model", default=os.environ.get("DEJABUG_MODEL", "sonnet"))
+    s.add_argument("--max-cost", type=float, default=float(os.environ.get("DEJABUG_MAX_COST", "0.50")))
     s.set_defaults(fn=cmd_steps)
 
     v = sub.add_parser("verify", help="check that a test reproduces the video")
