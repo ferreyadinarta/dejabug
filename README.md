@@ -21,7 +21,7 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
 dejabug steps https://github.com/<owner>/<repo>/issues/<number>    # or a local .mp4 / .mov / .webm
 ```
 
-dejabug downloads the video attached to the issue, reads it on your machine and writes numbered steps, with a close-up image of every click. No app, no model, no account; it takes about ten seconds. Real output for a recording of an MUI Autocomplete bug:
+dejabug downloads the video attached to the issue, reads it on your machine and writes numbered steps, with a close-up image of every click. It needs no app, model or account, and takes about ten seconds. Real output for a recording of an MUI Autocomplete bug:
 
 ```
 1. Click "Checkboxes" (2.2s)
@@ -55,7 +55,7 @@ With your app running, dejabug drafts a Playwright test from the actions in the 
 
 Bug reports arrive as videos recorded by someone else, with whatever tool they had. Turning one into a test is the slow part, and a generated test that fails proves little on its own: it might fail for a different reason than the one in the video.
 
-dejabug checks its test against the video. It records the test's replay, reads it the same way it read the original, and only reports `REPRODUCED` when both go through the same moments in the same order. Steps mode needs nothing but the video, so it can run on any issue with a recording attached.
+So dejabug checks its test against the video itself, and steps mode works from the recording alone, without the app.
 
 ## How it works
 
@@ -63,11 +63,11 @@ dejabug checks its test against the video. It records the test's replay, reads i
   <img src="docs/how-it-works.png" alt="bug.mp4 goes through three stages: watch turns the video into text, write has an agent write the test, verify records the test's replay and lines it up with the video. The result is REPRODUCED, FAILS_DIFFERENTLY or NOT_REPRODUCED; when it isn't reproduced, the report goes back to the agent.">
 </p>
 
-**watch** keeps the frames where the screen settles after a change (plus brief flashes, like a menu that opens and closes at once), reads them with OCR, and finds clicks by learning the shape of the mouse pointer and following it. A pointer that only rests on a row is reported as a hover, not a click. A 60-second video becomes a few dozen lines of events and one contact sheet. Steps mode stops here.
+`watch` keeps the frames where the screen settles after a change (plus brief flashes, like a menu that opens and closes at once), reads them with OCR, and finds clicks by learning the shape of the mouse pointer and following it. A pointer that only rests on a row is reported as a hover, not a click. A 60-second video becomes a few dozen lines of events and one contact sheet. Steps mode stops here.
 
-**write** turns the clicks and typing into a draft test, one line per action in video order. A coding agent (Claude Code by default, any agent CLI works) may add steps the video implies but can't drop or reorder the drafted ones, and writes the check for the bug.
+`write` turns the clicks and typing into a draft test, one line per action in video order. A coding agent (Claude Code by default, any agent CLI works) may add steps the video implies but can't drop or reorder the drafted ones, and writes the check for the bug.
 
-**verify** replays the test, compares it with the video and, if it doesn't reproduce, sends the report back to the agent for another try. You also get [side-by-side frames](docs/mui-47203-strip.png) of the user's video and the replay.
+`verify` replays the test, compares it with the video and, if it doesn't reproduce, sends the report back to the agent for another try. You also get [side-by-side frames](docs/mui-47203-strip.png) of the user's video and the replay.
 
 ## Install
 
