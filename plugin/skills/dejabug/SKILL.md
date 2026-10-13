@@ -37,7 +37,7 @@ This writes, into the output folder:
   Coordinates are pixels in the extracted frames (videos wider than 1280 px are scaled down to 1280).
 - `keyframes/<time>s.png`: open any frame you need to see in full.
 
-Write down the user's steps and the bug (what happened vs. what they expected) before writing code. Steps that look incidental often matter: a menu closed and reopened, a scroll before a click, a second click.
+Write down the user's steps and the bug (what happened vs. what they expected) before writing code. The bug is usually the surprising change right after the user acts (something jumps, resets, vanishes, or an error appears); later clicks are often the user retrying. `hover` means the pointer rested on something without clicking. Steps that look incidental often matter: a menu closed and reopened, a scroll before a click, a second click.
 
 ## 2. Write the test
 

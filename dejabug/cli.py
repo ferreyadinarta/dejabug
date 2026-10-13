@@ -58,10 +58,13 @@ def cmd_run(a: argparse.Namespace) -> int:
     _say(f"          {len(events)} moments, {clicks} clicks  {DIM}{out / 'contact_sheet.png'}{RESET}\n")
 
     feedback, verdict = "", {}
+    spent = {"cost_usd": 0.0, "input_tokens": 0, "output_tokens": 0, "turns": 0}
     for attempt in range(1, a.tries + 1):
         _say(f"{BOLD}2. write{RESET}   attempt {attempt}/{a.tries}: agent is writing the repro test")
         prompt = build_prompt(out, a.url, test, note=a.note or "", blind=a.blind, feedback=feedback)
-        code = run_agent(prompt, out, out / f"agent_attempt{attempt}.log")
+        code, usage = run_agent(prompt, out, out / f"agent_attempt{attempt}.log")
+        for k, v in usage.items():
+            spent[k] += v
         if code != 0 or not test.exists():
             _say(f"          {RED}agent did not produce a test (exit {code}); see agent_attempt{attempt}.log{RESET}")
             continue
@@ -78,9 +81,12 @@ def cmd_run(a: argparse.Namespace) -> int:
     final = verdict.get("verdict", "ERROR")
     color = GREEN if final == "REPRODUCED" else RED
     _say(f"\n{color}{BOLD}{final}{RESET}  in {took:.0f}s")
+    if spent["turns"]:
+        _say(f"  agent:  ${spent['cost_usd']:.2f}, {spent['input_tokens'] // 1000}k tokens in, "
+             f"{spent['output_tokens'] // 1000}k out, {spent['turns']} turns")
     if final == "REPRODUCED":
         _say(f"  test:   {test}\n  proof:  {out / 'verify' / 'strip.png'}")
-    (out / "result.json").write_text(json.dumps({**verdict, "seconds": round(took)}, indent=2))
+    (out / "result.json").write_text(json.dumps({**verdict, "seconds": round(took), "agent": spent}, indent=2))
     return 0 if final == "REPRODUCED" else 1
 
 

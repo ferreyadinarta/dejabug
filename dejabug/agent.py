@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shlex
 import shutil
@@ -38,7 +39,7 @@ def build_prompt(evidence: Path, url: str, test: Path, note: str = "", blind: bo
     return prompt
 
 
-def run_agent(prompt: str, workdir: Path, log: Path) -> int:
+def run_agent(prompt: str, workdir: Path, log: Path) -> tuple[int, dict]:
     workdir.mkdir(parents=True, exist_ok=True)
     prompt_file = workdir / "agent_prompt.md"
     prompt_file.write_text(prompt)
@@ -58,6 +59,21 @@ def run_agent(prompt: str, workdir: Path, log: Path) -> int:
             "--allowedTools", "Read", "Write", "Edit", "Glob", "Grep",
             f"Bash({py} *)", f"Bash({shlex.quote(py)} *)",
             "--add-dir", str(workdir.resolve()),
+            "--output-format", "json",
         ]
-    with open(log, "w") as f:
-        return subprocess.run(cmd, cwd=workdir, stdout=f, stderr=subprocess.STDOUT).returncode
+    run = subprocess.run(cmd, cwd=workdir, capture_output=True, text=True)
+    usage: dict = {}
+    text = run.stdout
+    if not custom:
+        try:
+            data = json.loads(run.stdout)
+            text = data.get("result", "")
+            u = data.get("usage") or {}
+            usage = {"cost_usd": data.get("total_cost_usd") or 0.0,
+                     "input_tokens": sum(u.get(k, 0) for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")),
+                     "output_tokens": u.get("output_tokens", 0),
+                     "turns": data.get("num_turns", 0)}
+        except (json.JSONDecodeError, AttributeError):
+            pass
+    log.write_text(text + run.stderr)
+    return run.returncode, usage

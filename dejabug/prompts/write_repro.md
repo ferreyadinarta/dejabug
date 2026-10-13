@@ -4,7 +4,7 @@ You are reproducing a bug from a screen recording. Your job: write a Playwright 
 
 - `{evidence}/events.jsonl`: one line per meaningful moment. Types:
   - `start` (text on screen at the beginning)
-  - `click` (`xy` + `label`: the text nearest to where the pointer rested before the screen changed)
+  - `click` (`xy` + `label`: the text nearest to where the pointer rested before the screen changed), `hover` (the pointer rested on something but only a highlight changed)
   - `type` (text typed into a field)
   - `text_changed`, `text_appeared`, `text_gone`
   - `panel_opened` / `panel_closed` (a list, menu or panel appearing or vanishing as one)
@@ -54,6 +54,7 @@ Rules for the test:
 ## How to work
 
 1. Read the events and look at the contact sheet. Write down, briefly: the user's steps, then what went wrong compared to what they expected.
+   The bug is usually the surprising change right after the user acts: something jumps, resets, vanishes, or an error appears. Clicks after that are often the user retrying or reacting to it. `hover` events are the pointer resting on something, not clicks.
 2. Write the test, then run it: `{python} {test}`
 3. Iterate until the steps run cleanly and the failure comes from your assertion about the bug, not from a locator error or a timeout.
 4. If after honest effort the app does not show the bug, keep the test asserting the correct behaviour and let it exit 0. Don't force a failure.
