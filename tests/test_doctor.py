@@ -14,3 +14,8 @@ def test_a_missing_steps_requirement_blocks_steps_mode():
 def test_test_mode_needs_every_run_check():
     rows = [("run", OK, "Playwright (test mode)", ""), ("run", OPTIONAL, "coding agent (test mode)", "install")]
     assert not ready(rows, "run")
+
+
+def test_no_model_still_leaves_steps_mode_ready():
+    rows = [("steps", OK, "Python 3.12", ""), ("steps", OPTIONAL, "model for accurate steps (Claude Code or ANTHROPIC_API_KEY)", "x")]
+    assert ready(rows, "steps")
