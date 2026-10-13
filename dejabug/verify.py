@@ -147,8 +147,8 @@ def verify(evidence: Path, test: Path, url: str | None = None) -> dict:
     env = {**os.environ, "DEJABUG_REPLAY_VIDEO": str(video)}
     if url:
         env["DEJABUG_URL"] = url
-    run = subprocess.run([sys.executable, str(test)], env=env, capture_output=True, text=True)
-    (out / "test_output.txt").write_text(run.stdout + run.stderr)
+    run = subprocess.run([sys.executable, str(test)], env=env, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    (out / "test_output.txt").write_text(run.stdout + run.stderr, encoding="utf-8")
 
     verdict: dict = {"test_exit": run.returncode, "test_output": run.stdout.strip().splitlines()[-3:]}
     if not video.exists():
@@ -159,14 +159,14 @@ def verify(evidence: Path, test: Path, url: str | None = None) -> dict:
     actions = Path(str(video) + ".actions.jsonl")
     if actions.exists():
         # The harness logged the clicks it made; trust that over pixel guesses.
-        logged = [json.loads(l) for l in actions.read_text().splitlines()]
+        logged = [json.loads(l) for l in actions.read_text(encoding="utf-8").splitlines()]
         screens = sorted((out / "replay" / "keyframes").glob("*.png"))
         for a in logged:
             after = [p.stem for p in screens if float(p.stem[:-1]) >= a["t"]]
             a["screen"] = after[0] if after else screens[-1].stem
         replay_events = sorted([e for e in replay_events if e["type"] != "click"] + logged,
                                key=lambda e: e["t"])
-    orig_events = [json.loads(l) for l in (evidence / "events.jsonl").read_text().splitlines()]
+    orig_events = [json.loads(l) for l in (evidence / "events.jsonl").read_text(encoding="utf-8").splitlines()]
     orig, rep = moments(orig_events), moments(replay_events)
     pairs = align(orig, rep)
     matched = {i: (j, s) for i, j, s in pairs}
@@ -215,12 +215,12 @@ def verify(evidence: Path, test: Path, url: str | None = None) -> dict:
 
 
 def _finish(out: Path, verdict: dict, lines: list[str]) -> dict:
-    (out / "verdict.json").write_text(json.dumps(verdict, indent=2, ensure_ascii=False))
+    (out / "verdict.json").write_text(json.dumps(verdict, indent=2, ensure_ascii=False), encoding="utf-8")
     report = [f"# {verdict['verdict']}", "", verdict.get("why", ""), ""]
     if lines:
         report += ["| | moment |", "|---|---|"] + [f"| {l[0]} | {l[2:]} |" for l in lines]
     report += ["", "Test output:", "```", *verdict.get("test_output", []), "```"]
-    (out / "report.md").write_text("\n".join(report) + "\n")
+    (out / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
     print("\n".join(lines))
     print(f"\n{verdict['verdict']}: {verdict.get('why', '')}")
     return verdict

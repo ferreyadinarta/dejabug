@@ -109,7 +109,7 @@ def open_page(url: str, width: int = 1280, height: int = 800, slow_mo: int = 120
                 Path(record_to).parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(video.path(), record_to)
                 Path(record_to + ".actions.jsonl").write_text(
-                    "".join(json.dumps(a, ensure_ascii=False) + "\n" for a in _ACTIONS))
+                    "".join(json.dumps(a, ensure_ascii=False) + "\n" for a in _ACTIONS), encoding="utf-8")
     if tmp:
         shutil.rmtree(tmp, ignore_errors=True)
 

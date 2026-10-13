@@ -146,5 +146,5 @@ if __name__ == "__main__":
 
 
 def load(evidence: Path) -> list[Step]:
-    events = [json.loads(l) for l in (evidence / "events.jsonl").read_text().splitlines()]
+    events = [json.loads(l) for l in (evidence / "events.jsonl").read_text(encoding="utf-8").splitlines()]
     return steps_from(events)

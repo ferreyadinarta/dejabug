@@ -49,7 +49,7 @@ def cmd_steps(a: argparse.Namespace) -> int:
     video, out = _input(a)
     ingest(video, out)
     md = markdown(load(out), a.video)
-    (out / "steps.md").write_text(md)
+    (out / "steps.md").write_text(md, encoding="utf-8")
     _say(md)
     _say(f"{DIM}saved to {out / 'steps.md'}; close-ups of each click are in {out / 'clicks'}{RESET}")
     return 0
@@ -97,7 +97,7 @@ def cmd_run(a: argparse.Namespace) -> int:
     steps = load(out)
     actions = sum(s.kind != "note" for s in steps)
     if not test.exists():
-        test.write_text(test_draft(steps, a.url))
+        test.write_text(test_draft(steps, a.url), encoding="utf-8")
     _say(f"          {len(events)} moments, {actions} user actions drafted as a test  {DIM}{out / 'contact_sheet.png'}{RESET}\n")
 
     feedback, verdict = "", {}
@@ -121,7 +121,7 @@ def cmd_run(a: argparse.Namespace) -> int:
         verdict = verify(out, test, a.url)
         if verdict["verdict"] == "REPRODUCED":
             break
-        feedback = (out / "verify" / "report.md").read_text()
+        feedback = (out / "verify" / "report.md").read_text(encoding="utf-8")
         _say("")
 
     spec = out / "repro.spec.ts"
@@ -144,11 +144,14 @@ def cmd_run(a: argparse.Namespace) -> int:
         _say(f"  test:   {test}\n  proof:  {out / 'verify' / 'strip.png'}")
         if spec.exists():
             _say(f"  spec:   {spec}")
-    (out / "result.json").write_text(json.dumps({**verdict, "seconds": round(took), "agent": spent}, indent=2))
+    (out / "result.json").write_text(json.dumps({**verdict, "seconds": round(took), "agent": spent}, indent=2), encoding="utf-8")
     return 0 if final == "REPRODUCED" else 1
 
 
 def main(argv: list[str] | None = None) -> int:
+    for stream in (sys.stdout, sys.stderr):  # Windows consoles default to a code page without ✓ or →
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(prog="dejabug", description=__doc__.split("\n\n")[0])
     ap.add_argument("--version", action="version", version=f"dejabug {__version__}")
     sub = ap.add_subparsers(dest="cmd", required=True)

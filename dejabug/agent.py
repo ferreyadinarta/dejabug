@@ -20,7 +20,7 @@ to find it.
 
 def build_prompt(evidence: Path, url: str, test: Path, note: str = "", blind: bool = False,
                  feedback: str = "") -> str:
-    template = resources.files("dejabug").joinpath("prompts/write_repro.md").read_text()
+    template = resources.files("dejabug").joinpath("prompts/write_repro.md").read_text(encoding="utf-8")
     prompt = (template
               .replace("{evidence}", str(evidence.resolve()))
               .replace("{url}", url)
@@ -60,15 +60,15 @@ def prepare_ts_project(folder: Path) -> None:
     """Minimal npm project so the spec can import @playwright/test."""
     pkg = folder / "package.json"
     if not pkg.exists():
-        pkg.write_text('{"private": true, "devDependencies": {"@playwright/test": "%s"}}\n' % playwright_version())
+        pkg.write_text('{"private": true, "devDependencies": {"@playwright/test": "%s"}}\n' % playwright_version(), encoding="utf-8")
     if not (folder / "node_modules" / "@playwright" / "test").exists():
         subprocess.run(["npm", "install", "--silent", "--no-audit", "--no-fund"], cwd=folder, check=True)
-    (folder / "playwright.dejabug.config.ts").write_text(TS_CONFIG)
+    (folder / "playwright.dejabug.config.ts").write_text(TS_CONFIG, encoding="utf-8")
 
 
 def build_port_prompt(test: Path, spec: Path, url: str) -> str:
     prepare_ts_project(spec.parent)
-    template = resources.files("dejabug").joinpath("prompts/port_ts.md").read_text()
+    template = resources.files("dejabug").joinpath("prompts/port_ts.md").read_text(encoding="utf-8")
     return (template
             .replace("{test}", str(test.resolve()))
             .replace("{spec}", str(spec.resolve()))
@@ -83,7 +83,7 @@ def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budg
               extra_tools: tuple[str, ...] = ()) -> tuple[int, dict]:
     workdir.mkdir(parents=True, exist_ok=True)
     prompt_file = workdir / "agent_prompt.md"
-    prompt_file.write_text(prompt)
+    prompt_file.write_text(prompt, encoding="utf-8")
 
     custom = os.environ.get("DEJABUG_AGENT")
     if custom:
@@ -107,8 +107,8 @@ def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budg
             cmd += ["--max-budget-usd", f"{budget:.2f}"]
     # `python` in the agent's shell is dejabug's own interpreter; no long paths to quote wrongly
     env = {**os.environ, "PATH": os.path.dirname(sys.executable) + os.pathsep + os.environ.get("PATH", "")}
-    run = subprocess.run(cmd, cwd=workdir, capture_output=True, text=True, env=env)
-    log.with_suffix(".json").write_text(run.stdout)
+    run = subprocess.run(cmd, cwd=workdir, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
+    log.with_suffix(".json").write_text(run.stdout, encoding="utf-8")
     usage: dict = {}
     text = run.stdout
     if not custom:
@@ -122,5 +122,5 @@ def run_agent(prompt: str, workdir: Path, log: Path, model: str = "sonnet", budg
                      "turns": data.get("num_turns", 0)}
         except (json.JSONDecodeError, AttributeError):
             pass
-    log.write_text(text + run.stderr)
+    log.write_text(text + run.stderr, encoding="utf-8")
     return run.returncode, usage

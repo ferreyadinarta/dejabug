@@ -692,10 +692,10 @@ def ingest(video: Path, out: Path) -> list[dict]:
     if os.environ.get("DEJABUG_DRAGS") == "1":  # experimental: still finds drags that didn't happen
         events = add_drags(events, detect_drags(grays, track, keys))
     zoom_clicks(events, frames, out)
-    with open(out / "events.jsonl", "w") as f:
+    with open(out / "events.jsonl", "w", encoding="utf-8") as f:
         for e in events:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")
-    with open(out / "cursor.jsonl", "w") as f:
+    with open(out / "cursor.jsonl", "w", encoding="utf-8") as f:
         for t, x, y in track:
             if x is not None:
                 f.write(json.dumps({"t": round(t, 1), "xy": [round(x), round(y)]}) + "\n")
