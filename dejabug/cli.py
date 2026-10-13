@@ -18,12 +18,32 @@ def _say(msg: str) -> None:
     print(msg, flush=True)
 
 
+def _input(a: argparse.Namespace) -> tuple[Path, Path]:
+    from dejabug.source import resolve
+
+    video, name = resolve(a.video, Path("dejabug-out"))
+    return video, (a.out or Path("dejabug-out") / name).resolve()
+
+
 def cmd_watch(a: argparse.Namespace) -> int:
     from dejabug.ingest import ingest
 
-    out = a.out or Path("dejabug-out") / a.video.stem
-    events = ingest(a.video, out)
+    video, out = _input(a)
+    events = ingest(video, out)
     _say(f"{len(events)} events -> {out / 'events.jsonl'}\ncontact sheet -> {out / 'contact_sheet.png'}")
+    return 0
+
+
+def cmd_steps(a: argparse.Namespace) -> int:
+    from dejabug.ingest import ingest
+    from dejabug.steps import load, markdown
+
+    video, out = _input(a)
+    ingest(video, out)
+    md = markdown(load(out), a.video)
+    (out / "steps.md").write_text(md)
+    _say(md)
+    _say(f"{DIM}saved to {out / 'steps.md'}; close-ups of each click are in {out / 'clicks'}{RESET}")
     return 0
 
 
@@ -48,15 +68,20 @@ def cmd_run(a: argparse.Namespace) -> int:
     from dejabug.ingest import ingest
     from dejabug.verify import verify
 
-    out = (a.out or Path("dejabug-out") / a.video.stem).resolve()
+    from dejabug.steps import load, test_draft
+
+    video, out = _input(a)
     test = out / "repro_test.py"
     started = time.monotonic()
 
-    _say(f"{BOLD}dejabug{RESET} {DIM}{__version__}{RESET}  {a.video.name} -> {a.url}\n")
+    _say(f"{BOLD}dejabug{RESET} {DIM}{__version__}{RESET}  {video.name} -> {a.url}\n")
     _say(f"{BOLD}1. watch{RESET}   reading the video")
-    events = ingest(a.video, out)
-    clicks = sum(e["type"] == "click" for e in events)
-    _say(f"          {len(events)} moments, {clicks} clicks  {DIM}{out / 'contact_sheet.png'}{RESET}\n")
+    events = ingest(video, out)
+    steps = load(out)
+    actions = sum(s.kind != "note" for s in steps)
+    if not test.exists():
+        test.write_text(test_draft(steps, a.url))
+    _say(f"          {len(events)} moments, {actions} user actions drafted as a test  {DIM}{out / 'contact_sheet.png'}{RESET}\n")
 
     feedback, verdict = "", {}
     spent = {"cost_usd": 0.0, "input_tokens": 0, "output_tokens": 0, "turns": 0}
@@ -112,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     r = sub.add_parser("run", help="video -> verified failing test (the whole loop)")
-    r.add_argument("video", type=Path)
+    r.add_argument("video", help="video file or GitHub issue link")
     r.add_argument("--url", required=True, help="where the app from the video is running")
     r.add_argument("-o", "--out", type=Path, help="output folder (default: dejabug-out/<video name>)")
     r.add_argument("--note", help="anything the reporter said about the bug")
@@ -128,9 +153,14 @@ def main(argv: list[str] | None = None) -> int:
     r.set_defaults(fn=cmd_run)
 
     w = sub.add_parser("watch", help="video -> event log + contact sheet")
-    w.add_argument("video", type=Path)
+    w.add_argument("video", help="video file or GitHub issue link")
     w.add_argument("-o", "--out", type=Path)
     w.set_defaults(fn=cmd_watch)
+
+    s = sub.add_parser("steps", help="video -> written steps to reproduce (no app needed)")
+    s.add_argument("video", help="video file or GitHub issue link")
+    s.add_argument("-o", "--out", type=Path)
+    s.set_defaults(fn=cmd_steps)
 
     v = sub.add_parser("verify", help="check that a test reproduces the video")
     v.add_argument("evidence", type=Path, help="folder from `dejabug watch`")
@@ -147,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--storage-state", type=Path,
                        help="Playwright storage state file (cookies, local storage) so tests start logged in")
     a = ap.parse_args(argv)
-    if a.storage_state:
+    if getattr(a, "storage_state", None):
         os.environ["DEJABUG_STORAGE_STATE"] = str(a.storage_state.resolve())
     return a.fn(a)
 

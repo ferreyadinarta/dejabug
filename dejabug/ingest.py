@@ -473,7 +473,7 @@ def describe(keys: list[Keyframe], track) -> list[dict]:
         if not step:
             step.append({**base, "type": "ui_change"})
         events += step
-    return merge_typing(events)[:MAX_EVENTS]
+    return typed_after_click(merge_typing(events))[:MAX_EVENTS]
 
 
 def substantive(step: list[dict], before: list[Box]) -> bool:
@@ -496,6 +496,20 @@ def substantive(step: list[dict], before: list[Box]) -> bool:
             continue
         return True
     return False
+
+
+def typed_after_click(events: list[dict]) -> list[dict]:
+    """Typing only counts in a field the user clicked first; otherwise it's text that appeared."""
+    out, last_click = [], None
+    for e in events:
+        if e["type"] == "click":
+            last_click = e
+        if e["type"] == "type" and not (last_click and e["t"] - last_click["t"] < 10
+                                        and abs(last_click["xy"][1] - e["xy"][1]) < 40):
+            e = {**e, "type": "text_appeared"}
+            e.pop("t_end", None)
+        out.append(e)
+    return out
 
 
 def merge_typing(events: list[dict]) -> list[dict]:

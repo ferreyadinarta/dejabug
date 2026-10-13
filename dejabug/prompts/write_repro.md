@@ -20,42 +20,20 @@ The app from the video is running at {url}. You may open it and inspect the DOM.
 {note}
 {rules}
 
-## What to write
+## The test
 
-Write `{test}`: a plain Python script with this shape.
+dejabug already drafted `{test}` from the video: one line per user action, in order, with what happened on screen as comments. It uses the harness helpers `click(page, label)` and `hover(page, label)`, which find an element by its visible label.
 
-```python
-import sys
-from dejabug.harness import open_page, REPRODUCED, SETUP_ERROR, NOT_REPRODUCED
-
-URL = "{url}"
-
-def main() -> int:
-    with open_page(URL) as page:
-        # 1. the user's steps, in order, with the video timestamps as comments
-        # 2. measure the thing that went wrong (print the measured values)
-        ...
-    # Exit with:
-    #   SETUP_ERROR     (2) if you could not reach the state shown in the video
-    #   REPRODUCED      (1) if the wrong behaviour happened; print "ASSERTION FAILED: <what happened> ; expected <what should have happened>"
-    #   NOT_REPRODUCED  (0) if the correct behaviour happened
-    return ...
-
-if __name__ == "__main__":
-    sys.exit(main())
-```
-
-Rules for the test:
-- Use `open_page` from `dejabug.harness`. If the app needs a login, the harness already starts logged in when the user passed `--storage-state`. Don't launch browsers yourself: the harness records the replay that dejabug compares with the video.
-- Prefer robust locators (`get_by_role`, `get_by_text`, `get_by_label`) using the labels you see in the video.
-- Reproduce **every** step the video shows, in order, even ones that look pointless: a menu opened, closed and opened again (`panel_opened`, `panel_closed`, `panel_opened`), a scroll before a click, a second click. Bugs often depend on exactly those steps, so never simplify the sequence.
-- The assertion must check the **correct** behaviour, so it fails while the bug exists and passes once the bug is fixed. Never assert the buggy behaviour.
+- **Don't remove or reorder the drafted actions.** You may add steps the video implies but the draft misses (for example a list that opened or closed with no click before it means the user clicked something), and fix a step whose label doesn't match the page.
+- Lines marked TODO need you: a click on something without text (open the close-up image named in the comment), and the final check.
+- At the end, measure the thing that went wrong, print the measured values, and return `REPRODUCED` (1) if the wrong behaviour happened, printing `ASSERTION FAILED: <what happened> ; expected <what should have happened>`; `NOT_REPRODUCED` (0) if the correct behaviour happened; `SETUP_ERROR` (2) if you couldn't reach the state in the video.
+- Keep `open_page`: it records the replay that dejabug compares with the video.
 
 ## How to work
 
 1. Read the events and look at the contact sheet. Write down, briefly: the user's steps, then what went wrong compared to what they expected.
    The bug is usually the surprising change right after the user acts: something jumps, resets, vanishes, or an error appears. Clicks after that are often the user retrying or reacting to it. `hover` events are the pointer resting on something, not clicks.
-2. Write the test, then run it: `{python} {test}`
+2. Run the draft, complete it, and run it again: `{python} {test}`
 3. Iterate until the steps run cleanly and the failure comes from your assertion about the bug, not from a locator error or a timeout.
 4. If after honest effort the app does not show the bug, keep the test asserting the correct behaviour and let it exit 0. Don't force a failure.
 

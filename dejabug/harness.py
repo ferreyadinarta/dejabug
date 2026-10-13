@@ -107,3 +107,33 @@ def open_page(url: str, width: int = 1280, height: int = 800, slow_mo: int = 120
                     "".join(json.dumps(a, ensure_ascii=False) + "\n" for a in _ACTIONS))
     if tmp:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+ROLES = ("option", "button", "link", "menuitem", "tab", "checkbox", "radio", "combobox", "textbox", "switch")
+
+
+def find(page: Page, label: str):
+    """The visible element a person would call `label`."""
+    candidates = [page.get_by_role(r, name=label, exact=True) for r in ROLES]
+    candidates += [page.get_by_label(label, exact=True), page.get_by_placeholder(label, exact=True),
+                   page.get_by_text(label, exact=True)]
+    candidates += [page.get_by_role(r, name=label) for r in ROLES]
+    candidates += [page.get_by_label(label), page.get_by_placeholder(label), page.get_by_text(label)]
+    words = " ".join(label.split()[:2])
+    if words and words != label:  # OCR often misreads the end of long labels
+        candidates.append(page.get_by_text(words))
+    for loc in candidates:
+        try:
+            if loc.count():
+                return loc.first
+        except Exception:
+            continue
+    raise LookupError(f'nothing on the page matches "{label}"')
+
+
+def click(page: Page, label: str) -> None:
+    find(page, label).click()
+
+
+def hover(page: Page, label: str) -> None:
+    find(page, label).hover()
