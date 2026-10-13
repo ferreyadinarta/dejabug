@@ -37,3 +37,6 @@ dev = ["pytest>=8"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.hatch.build.targets.sdist]
+include = ["dejabug", "tests", "README.md", "LICENSE", "pyproject.toml"]

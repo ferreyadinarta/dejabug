@@ -6,3 +6,5 @@ demo/videos/
 .DS_Store
 bench/videos/
 node_modules/
+dejabug-out/
+dist/
