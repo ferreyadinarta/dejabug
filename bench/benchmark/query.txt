@@ -1,0 +1,56 @@
+Benchmark sample query (frozen before any candidate was looked at)
+Date run: 2026-10-13
+Run by: QA lead agent, with the authenticated GitHub CLI (~/.local/bin/gh api -X GET search/issues), read-only.
+dejabug under test: 0.1.1 (see note at the bottom about the tag)
+
+QUERY TEMPLATE (GitHub search caps a query at 256 characters, so it is run once per repo, same template):
+
+  repo:<REPO> is:issue is:closed "user-attachments/assets" in:body closed:2025-10-13..2026-10-13
+
+REPOS (15, each a front-end web app or UI library with a local dev app/docs/playground):
+  excalidraw/excalidraw
+  tldraw/tldraw
+  mui/material-ui
+  mui/mui-x
+  facebook/docusaurus
+  chakra-ui/chakra-ui
+  xyflow/xyflow
+  facebook/lexical
+  ueberdosis/tiptap
+  TypeCellOS/BlockNote
+  adobe/react-spectrum
+  radix-ui/primitives
+  ant-design/ant-design
+  hoppscotch/hoppscotch
+  shadcn-ui/ui
+
+SORT ORDER: all results of the 15 queries are merged (all pages, up to the API's 1000 per query),
+then sorted locally by closed_at descending (most recently closed first); ties by repo then number.
+Candidates are examined strictly in that order until 20 qualify. Every examined issue goes to scanned.csv.
+
+ACCEPTED BUG LABELS (condition 1), as present on the issue at scan time:
+  bug, Bug, type: bug, type: regression, Type: Bug, Type: Bug 🐛, 🐛 Bug, bug:P1, bug:P2, bug:P3, bug:P4,
+  browser bug (react-spectrum),
+  lexical platform bug labels: all-platforms-bug, chrome-bug, firefox-bug, safari-bug, mac-bug, windows-bug, android-bug, ios-bug
+  (NOT infra-bug, NOT PR-only labels such as "bugfix", "bug fix", "pr: bug fix"),
+  plus the GitHub issue type "Bug" (tldraw, tiptap, xyflow, ant-design use issue types).
+
+VIDEO (condition 2): a screen recording in the issue body: a .mp4/.mov/.webm link, or a
+github.com/user-attachments/assets/<uuid> link whose download resolves to a video file
+(checked by following the redirect / content type). Links inside <img> or ![]() are images, not video.
+Videos in comments only do not count (the query only searches the body).
+
+FIX (condition 3): the issue is closed by a merged PR or a commit (timeline ClosedEvent closer),
+or GitHub lists a merged PR in closedByPullRequestsReferences, or a merged PR in the same repo
+cross-references the issue with "fix/fixes/close/closes/resolve/resolves #<n>".
+
+LOCAL APP (condition 4): the bug shows in a web app (the product itself, or the library's docs site /
+playground / storybook / a minimal Vite harness) that runs locally after a JS package install
+(npm install; repos using pnpm/yarn count as the package-manager equivalent), with no external service,
+login, cloud backend or seeded data needed to reach the bug. Native/mobile-only, CLI, SSR/deploy-only and
+backend-dependent bugs are skipped.
+
+Videos over 100 MB are skipped (disk space) and logged as such.
+
+NOTE on version: the repo has no v0.1.1 git tag (git tags: v0.1.0 only; HEAD = v0.1.0-9-g5bbd4c7, clean tree).
+The installed package reports "dejabug 0.1.1"; that working tree is what was run.

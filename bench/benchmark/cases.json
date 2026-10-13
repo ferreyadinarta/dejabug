@@ -1,0 +1,202 @@
+[
+ {
+  "id": "TypeCellOS_BlockNote-2559",
+  "url": "https://github.com/TypeCellOS/BlockNote/issues/2559",
+  "title": "Editor in dialog overlapping another breaks SideMenu and drag-and-drop",
+  "video_url": "https://github.com/user-attachments/assets/be553b97-812c-487e-9f84-7aa12d7f9e20",
+  "video_file": "TypeCellOS_BlockNote-2559.mp4",
+  "bytes": 972454,
+  "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/3179",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "TypeCellOS_BlockNote-2378",
+  "url": "https://github.com/TypeCellOS/BlockNote/issues/2378",
+  "title": "Toggle block content is moved to next toggle block",
+  "video_url": "https://github.com/user-attachments/assets/721b5674-1360-437a-9b03-09a21f5ac95e",
+  "video_file": "TypeCellOS_BlockNote-2378.webm",
+  "bytes": 191371,
+  "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/3142",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "TypeCellOS_BlockNote-2020",
+  "url": "https://github.com/TypeCellOS/BlockNote/issues/2020",
+  "title": "Enter Key Breaks Children in Custom Toggleable Blocks",
+  "video_url": "https://github.com/user-attachments/assets/eb85ca78-7b74-497d-944e-27017ba6f675",
+  "video_file": "TypeCellOS_BlockNote-2020.webm",
+  "bytes": 255825,
+  "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/3142",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "TypeCellOS_BlockNote-1875",
+  "url": "https://github.com/TypeCellOS/BlockNote/issues/1875",
+  "title": "Hitting enter on a unfolded toggle block creates new toggle block",
+  "video_url": "https://github.com/user-attachments/assets/550fac85-9296-4b8d-8f16-8ac4e4fc7ccf",
+  "video_file": "TypeCellOS_BlockNote-1875.webm",
+  "bytes": 100470,
+  "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/3142",
+  "n_videos_in_body": 2
+ },
+ {
+  "id": "TypeCellOS_BlockNote-2109",
+  "url": "https://github.com/TypeCellOS/BlockNote/issues/2109",
+  "title": "Empty toggle list doesn't allow drag and drop",
+  "video_url": "https://github.com/user-attachments/assets/31264adf-e896-4f0e-afd9-0154bc3e711a",
+  "video_file": "TypeCellOS_BlockNote-2109.webm",
+  "bytes": 485596,
+  "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/3143",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "mui_mui-x-23735",
+  "url": "https://github.com/mui/mui-x/issues/23735",
+  "title": "[scheduler] The Event Timeline rows are estimated too tall when the body2 font size is in px",
+  "video_url": "https://github.com/user-attachments/assets/657ffd69-a153-47ca-9940-d783ffc6a39e",
+  "video_file": "mui_mui-x-23735.mov",
+  "bytes": 1955650,
+  "fix": "PR https://github.com/mui/mui-x/pull/23736",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "excalidraw_excalidraw-9277",
+  "url": "https://github.com/excalidraw/excalidraw/issues/9277",
+  "title": "Excalidraw UI displacement",
+  "video_url": "https://github.com/user-attachments/assets/dab08ca6-76ab-498a-87aa-36dfc989551b",
+  "video_file": "excalidraw_excalidraw-9277.mp4",
+  "bytes": 1188309,
+  "fix": "PR https://github.com/excalidraw/excalidraw/pull/12175",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "excalidraw_excalidraw-8936",
+  "url": "https://github.com/excalidraw/excalidraw/issues/8936",
+  "title": "Bug: typing while scrolled up from WYSIWYG causes menus and toolbars to be scrolled up",
+  "video_url": "https://github.com/user-attachments/assets/981981c0-3e65-497e-9285-073b58a62a65",
+  "video_file": "excalidraw_excalidraw-8936.mp4",
+  "bytes": 7660574,
+  "fix": "PR https://github.com/excalidraw/excalidraw/pull/12175",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "excalidraw_excalidraw-9423",
+  "url": "https://github.com/excalidraw/excalidraw/issues/9423",
+  "title": "bug in changing X Y params of a frame via Properties",
+  "video_url": "https://github.com/user-attachments/assets/85386973-1025-4140-8b63-e0d362ae48a4",
+  "video_file": "excalidraw_excalidraw-9423.mp4",
+  "bytes": 1262365,
+  "fix": "PR https://github.com/excalidraw/excalidraw/pull/9433",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "xyflow_xyflow-5508",
+  "url": "https://github.com/xyflow/xyflow/issues/5508",
+  "title": "Question about onNodesChange firing on prevented resizes when shouldResize is false",
+  "video_url": "https://github.com/user-attachments/assets/7797c96a-2490-4ccc-b3ad-08a184ea6e13",
+  "video_file": "xyflow_xyflow-5508.mov",
+  "bytes": 873631,
+  "fix": "PR https://github.com/xyflow/xyflow/pull/5998",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "ueberdosis_tiptap-8334",
+  "url": "https://github.com/ueberdosis/tiptap/issues/8334",
+  "title": "[Bug]: URL that gets pasted never ends and bleeds to text after it",
+  "video_url": "https://github.com/user-attachments/assets/11e543cb-11a1-4a78-9c81-af9166cb43db",
+  "video_file": "ueberdosis_tiptap-8334.mov",
+  "bytes": 8792960,
+  "fix": "PR https://github.com/ueberdosis/tiptap/pull/8335",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "facebook_lexical-8885",
+  "url": "https://github.com/facebook/lexical/issues/8885",
+  "title": "Bug: SELECTION_CHANGE_COMMAND is triggered after clicking a link in Safari",
+  "video_url": "https://github.com/user-attachments/assets/aeb37d84-a7d0-4f97-aba7-b0793a774c3b",
+  "video_file": "facebook_lexical-8885.mov",
+  "bytes": 7814518,
+  "fix": "PR https://github.com/facebook/lexical/pull/9163",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "facebook_lexical-9126",
+  "url": "https://github.com/facebook/lexical/issues/9126",
+  "title": "Bug: Placeholder still displays when pasting text in Safari",
+  "video_url": "https://github.com/user-attachments/assets/d8ea9641-f1d3-401c-b6e4-7ebc60588ad3",
+  "video_file": "facebook_lexical-9126.mov",
+  "bytes": 10018569,
+  "fix": "PR https://github.com/facebook/lexical/pull/9129",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "tldraw_tldraw-6191",
+  "url": "https://github.com/tldraw/tldraw/issues/6191",
+  "title": "Rotating shape while holding it with mouse translates it too",
+  "video_url": "https://github.com/user-attachments/assets/797d9c84-0a1d-46ef-98ae-ee1fd477cc11",
+  "video_file": "tldraw_tldraw-6191.mov",
+  "bytes": 2303627,
+  "fix": "PR https://github.com/tldraw/tldraw/pull/9215",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "adobe_react-spectrum-6809",
+  "url": "https://github.com/adobe/react-spectrum/issues/6809",
+  "title": "isFocusVisible is not set on elements using react-hook-form",
+  "video_url": "https://github.com/user-attachments/assets/eed2395a-abfa-4ac5-ab0b-29cd4c0e3e0b",
+  "video_file": "adobe_react-spectrum-6809.mp4",
+  "bytes": 1353149,
+  "fix": "PR https://github.com/adobe/react-spectrum/pull/10426",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "ueberdosis_tiptap-8164",
+  "url": "https://github.com/ueberdosis/tiptap/issues/8164",
+  "title": "ReactNodeView incorrectly setting .ProseMirror-selectedNode class",
+  "video_url": "https://github.com/user-attachments/assets/149b4b42-10bc-4605-b8c4-7ddc6ddde522",
+  "video_file": "ueberdosis_tiptap-8164.mov",
+  "bytes": 1203887,
+  "fix": "PR https://github.com/ueberdosis/tiptap/pull/8165",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "mui_mui-x-20364",
+  "url": "https://github.com/mui/mui-x/issues/20364",
+  "title": "[charts] Some axis clicks discarded",
+  "video_url": "https://github.com/user-attachments/assets/035bb494-b456-4cf1-b6bc-ab2095351cfb",
+  "video_file": "mui_mui-x-20364.mov",
+  "bytes": 857730,
+  "fix": "PR https://github.com/mui/mui-x/pull/23244",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "ueberdosis_tiptap-5472",
+  "url": "https://github.com/ueberdosis/tiptap/issues/5472",
+  "title": "[Bug]: ArrowUp on codeblock doesn't exit if it's the first thing",
+  "video_url": "https://github.com/user-attachments/assets/8a213070-7e09-4564-9fd1-bdae9f69b87d",
+  "video_file": "ueberdosis_tiptap-5472.mov",
+  "bytes": 1219012,
+  "fix": "PR https://github.com/ueberdosis/tiptap/pull/8114",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "ueberdosis_tiptap-8014",
+  "url": "https://github.com/ueberdosis/tiptap/issues/8014",
+  "title": "Pasting content copied from Tiptap adds new paragraphs",
+  "video_url": "https://github.com/user-attachments/assets/2355f19e-7bd8-4a91-b3ef-4e6522614c47",
+  "video_file": "ueberdosis_tiptap-8014.mp4",
+  "bytes": 20431889,
+  "fix": "PR https://github.com/ueberdosis/tiptap/pull/8104",
+  "n_videos_in_body": 1
+ },
+ {
+  "id": "ueberdosis_tiptap-7125",
+  "url": "https://github.com/ueberdosis/tiptap/issues/7125",
+  "title": "Inserting a hardBreak at the end of the input does not trigger scrolling",
+  "video_url": "https://github.com/user-attachments/assets/6659329f-4adf-42db-ac2a-215dfb9baa19",
+  "video_file": "ueberdosis_tiptap-7125.mp4",
+  "bytes": 986350,
+  "fix": "PR https://github.com/ueberdosis/tiptap/pull/8094",
+  "n_videos_in_body": 1
+ }
+]

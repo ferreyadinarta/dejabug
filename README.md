@@ -13,7 +13,7 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-> **Status: early.** `dejabug steps` is ready to use. `dejabug run` (video to verified test) is in beta and runs with Claude Code only: see [Results so far](#results-so-far) for how often it works.
+> **Status: early, and not reliable yet.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) found that `dejabug steps` misses most of what users do when they type, drag or use the keyboard (it found 9 of 175 actions). I'm working on that before a proper release. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
 
 ## Steps to reproduce, from a bug video
 
