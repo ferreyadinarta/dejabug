@@ -332,8 +332,16 @@ def column(boxes: list[Box]) -> tuple[list[Box], list[Box]]:
     return best, [b for b in boxes if b not in best]
 
 
+def _words(text: str) -> set[str]:
+    return {w for w in re.findall(r"[a-z0-9]+", text.lower()) if len(w) > 1}
+
+
 def ocr_flicker(a: str, b: str) -> bool:
-    """'Part II' vs 'Part lI': the same text read slightly differently."""
+    """Same text read slightly differently ('Part II' vs 'Part lI', 'Inception X' vs 'Inception')."""
+    wa, wb = _words(a), _words(b)
+    small, big = sorted((wa, wb), key=len)
+    if small and small <= big and all(w.isalpha() for w in big - small):
+        return True  # same words plus a merged neighbour or an icon read as a letter
     if abs(len(a) - len(b)) > 1:
         return False
     import difflib
