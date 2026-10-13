@@ -78,5 +78,85 @@
   "seconds": 13.6,
   "app_type": "canvas/drawing",
   "reference_file": "reference/tldraw_tldraw-9221.md"
+ },
+ {
+  "id": "tldraw_tldraw-9223",
+  "url": "https://github.com/tldraw/tldraw/issues/9223",
+  "video_file": "tldraw_tldraw-9223.mov",
+  "seconds": 11.7,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/tldraw_tldraw-9223.md"
+ },
+ {
+  "id": "xyflow_xyflow-5757",
+  "url": "https://github.com/xyflow/xyflow/issues/5757",
+  "video_file": "xyflow_xyflow-5757.mov",
+  "seconds": 6.7,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/xyflow_xyflow-5757.md"
+ },
+ {
+  "id": "tldraw_tldraw-8328",
+  "url": "https://github.com/tldraw/tldraw/issues/8328",
+  "video_file": "tldraw_tldraw-8328.mp4",
+  "seconds": 5.6,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/tldraw_tldraw-8328.md"
+ },
+ {
+  "id": "TypeCellOS_BlockNote-2759",
+  "url": "https://github.com/TypeCellOS/BlockNote/issues/2759",
+  "video_file": "TypeCellOS_BlockNote-2759.mp4",
+  "seconds": 15.2,
+  "app_type": "rich-text editor",
+  "reference_file": "reference/TypeCellOS_BlockNote-2759.md"
+ },
+ {
+  "id": "facebook_lexical-8697",
+  "url": "https://github.com/facebook/lexical/issues/8697",
+  "video_file": "facebook_lexical-8697.webm",
+  "seconds": 16.7,
+  "app_type": "rich-text editor",
+  "reference_file": "reference/facebook_lexical-8697.md"
+ },
+ {
+  "id": "mui_mui-x-22754",
+  "url": "https://github.com/mui/mui-x/issues/22754",
+  "video_file": "mui_mui-x-22754.mov",
+  "seconds": 13.4,
+  "app_type": "dashboard/calendar",
+  "reference_file": "reference/mui_mui-x-22754.md"
+ },
+ {
+  "id": "excalidraw_excalidraw-9662",
+  "url": "https://github.com/excalidraw/excalidraw/issues/9662",
+  "video_file": "excalidraw_excalidraw-9662.mov",
+  "seconds": 21.3,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/excalidraw_excalidraw-9662.md"
+ },
+ {
+  "id": "tldraw_tldraw-8942",
+  "url": "https://github.com/tldraw/tldraw/issues/8942",
+  "video_file": "tldraw_tldraw-8942.mp4",
+  "seconds": 7.1,
+  "app_type": "canvas/drawing",
+  "reference_file": "reference/tldraw_tldraw-8942.md"
+ },
+ {
+  "id": "radix-ui_primitives-3709",
+  "url": "https://github.com/radix-ui/primitives/issues/3709",
+  "video_file": "radix-ui_primitives-3709.mp4",
+  "seconds": 13.6,
+  "app_type": "form/list/menu",
+  "reference_file": "reference/radix-ui_primitives-3709.md"
+ },
+ {
+  "id": "TypeCellOS_BlockNote-2763",
+  "url": "https://github.com/TypeCellOS/BlockNote/issues/2763",
+  "video_file": "TypeCellOS_BlockNote-2763.mp4",
+  "seconds": 21.5,
+  "app_type": "rich-text editor",
+  "reference_file": "reference/TypeCellOS_BlockNote-2763.md"
  }
 ]
