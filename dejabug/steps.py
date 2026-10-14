@@ -94,10 +94,17 @@ AI_VERBS = {"click": "Click", "double_click": "Double-click", "right_click": "Ri
             "hover": "Hover over"}
 
 
+KINDS = {"double-click": "double_click", "triple_click": "double_click", "key": "press", "move": "hover"}
+NOT_ACTIONS = {"load", "start", "release", "wait", "observe"}
+
+
 def tidy(data: dict, gap: float = 2.5) -> dict:
-    """Join typing the model split across frames into one step."""
+    """Fix action names the model made up, and join typing it split across frames into one step."""
     out: list[dict] = []
     for s in data.get("steps", []):
+        s = {**s, "action": KINDS.get(s.get("action"), s.get("action"))}
+        if s["action"] in NOT_ACTIONS:
+            continue
         p = out[-1] if out else None
         if p and s.get("action") == "type" and p.get("action") == "type" and s.get("target") == p.get("target") \
                 and float(s.get("t", 0)) - float(p.get("t_end", p.get("t", 0))) <= gap:

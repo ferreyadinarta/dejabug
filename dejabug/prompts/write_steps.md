@@ -44,7 +44,7 @@ Save `{out}` as JSON:
 - `text` is what was typed or pasted, or the key for `press`.
 - Write steps the way a person writes them in a bug report: one step per thing the user meant to do, in order. A run of typing into one place is one `type` step with the whole text; sliding across several options with the button held is one `drag`; however many frames each spans.
 - Only include an action you can see evidence for in the frames. If something changed and you can't tell which action caused it, add a step with your best guess and `"uncertain": true`, and say what you saw in `evidence`.
-- Fewer correct steps beat many guessed ones. Don't pad.
+- List every action you can see evidence for, including small ones: a click that only moves focus, a hover that shows a tooltip or highlight. Don't add actions you have no evidence for.
 - `bug` is the moment the user would point at as wrong, and what's wrong, in plain words. It is usually the first surprising thing the app does right after an action: something jumps, resets, vanishes, lands in the wrong place, or looks selected when it isn't. Later actions are often the user repeating it.
 {note}
 Write only the JSON file, then reply with one line: how many steps and the bug moment.

@@ -95,3 +95,9 @@ def test_vote_keeps_steps_most_drafts_share():
     voted = vision.vote([a, b, c])
     assert [(s["action"], s["target"]) for s in voted["steps"]] == [("click", "A"), ("drag", "C")]
     assert voted["bug"]["what"] == "y"  # the middle bug time
+
+
+def test_tidy_fixes_made_up_action_names():
+    data = {"steps": [{"t": 0.0, "action": "load", "target": "page"}, {"t": 1.0, "action": "move", "target": "Save"},
+                      {"t": 2.0, "action": "double-click", "target": "word"}]}
+    assert [s["action"] for s in tidy(data)["steps"]] == ["hover", "double_click"]
