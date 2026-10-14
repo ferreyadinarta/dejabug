@@ -8,7 +8,7 @@ Write one corrected list. Check every step against the frames, one by one:
 - Is the time the frame where the action happens (not where its result settles)? Fix it.
 - Is the target named the way a person would, using a visible label where there is one?
 
-Add a step only when an action is clearly visible and missing. Then check the bug: it should be the first moment the app does something wrong right after a user action, described by what is visibly wrong.
+Keep steps at the level a person would write in a bug report: one per thing the user meant to do. Add a step only when an action is clearly visible and missing. Then check the bug: it should be the first moment the app does something wrong right after a user action, described by what is visibly wrong.
 
 {drafts}
 {context}

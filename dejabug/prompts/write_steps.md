@@ -42,7 +42,7 @@ Save `{out}` as JSON:
 - `action` is one of: click, double_click, right_click, type, press (a key such as Enter, Backspace, Tab, Escape, or a shortcut like Cmd+B), paste, drag, select (selecting text or items by dragging), scroll, hover.
 - `target` is what a person would call the thing acted on: a visible label, or a short description ("the second paragraph", "the red rectangle", "the toolbar's bold button").
 - `text` is what was typed or pasted, or the key for `press`.
-- One step per user action, in order. A run of typing into one place is one `type` step with the whole text, however many frames it spans.
+- Write steps the way a person writes them in a bug report: one step per thing the user meant to do, in order. A run of typing into one place is one `type` step with the whole text; sliding across several options with the button held is one `drag`; however many frames each spans.
 - Only include an action you can see evidence for in the frames. If something changed and you can't tell which action caused it, add a step with your best guess and `"uncertain": true`, and say what you saw in `evidence`.
 - Fewer correct steps beat many guessed ones. Don't pad.
 - `bug` is the moment the user would point at as wrong, and what's wrong, in plain words. It is usually the first surprising thing the app does right after an action: something jumps, resets, vanishes, lands in the wrong place, or looks selected when it isn't. Later actions are often the user repeating it.
