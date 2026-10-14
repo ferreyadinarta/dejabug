@@ -70,7 +70,7 @@ def _ai_steps(a: argparse.Namespace, out: Path, video: Path) -> str | None:
     target = out / "steps.json"
     target.unlink(missing_ok=True)
     custom = os.environ.get("DEJABUG_AGENT")
-    _say(f"{DIM}{a.model} is reading the film (--no-ai to skip)...{RESET}")
+    _say(f"{DIM}sending frames to Anthropic; {a.model} is writing the steps (--no-ai keeps it local)...{RESET}")
     if custom:  # other agents read the files themselves
         code, usage = run_agent(build_steps_prompt(out, target, _context(a, video)), out, out / "agent_steps.log",
                                 a.model, a.max_cost)
