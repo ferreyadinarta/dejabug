@@ -32,7 +32,7 @@ Bug (4.5s): After clicking Inception with disableCloseOnSelect, the open options
 to the top (The Shawshank Redemption) instead of preserving the scrolled position where Inception was visible
 ```
 
-Steps the model inferred rather than saw are marked "not sure". dejabug needs Claude Code or an `ANTHROPIC_API_KEY` for this. If the video can't leave your machine, `--no-ai` gives a local timeline of what changed on screen, with the frames to check it against. It's free and offline, but it isn't reliable steps: it misses most typing, keys and drags.
+Steps the model inferred rather than saw are marked "not sure". It works best when it can read what the reporter wrote: give it the issue link, or the ticket's text with `--report`. On our development videos that raised the share of correct steps from about 55% to about 70%, and it found the bug moment in about 16 of 20 videos instead of 10. dejabug needs Claude Code or an `ANTHROPIC_API_KEY` for this. If the video can't leave your machine, `--no-ai` gives a local timeline of what changed on screen, with the frames to check it against. It's free and offline, but it isn't reliable steps: it misses most typing, keys and drags.
 
 ## A failing test, checked against the video
 
@@ -93,7 +93,8 @@ Add the dejabug Action and it replies to issues that have a video with steps wri
 
 ```bash
 dejabug steps bug.mov                                      # steps to reproduce, no app needed
-dejabug steps bug.mov --note "only on Safari"              # tell the model what the reporter said
+dejabug steps bug.mov --report ticket.txt                  # give it the bug report's text: much better bug line
+dejabug steps bug.mov --note "only on Safari"              # or one line about it
 dejabug steps bug.mov --no-ai                              # no model: local timeline of what changed
 dejabug run bug.mov --url http://localhost:3000            # video to verified failing test
 dejabug run bug.mov --url http://localhost:3000 --format ts   # also write a @playwright/test spec
