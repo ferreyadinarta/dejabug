@@ -52,13 +52,13 @@ MAX_ISSUE_CHARS = 4000
 
 def _context(a: argparse.Namespace, video: Path) -> str:
     """The reporter's note, or the issue's title and text when the video came from an issue link."""
-    issue = video.parent / "issue.md"
+    issue = a.report or video.parent / "issue.md"
     if a.note:
         return f"What the reporter said: {a.note}"
     if not issue.exists():
         return ""
     text = re.sub(r"https?://\S+", "", issue.read_text(encoding="utf-8"))[:MAX_ISSUE_CHARS]
-    return ("The issue the video came from is below. Use it to understand the bug and name things, "
+    return ("The bug report the video came with is below. Use it to understand the bug and name things, "
             f"but list only actions the video shows.\n\n<issue>\n{text}\n</issue>")
 
 
@@ -246,6 +246,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--no-ai", action="store_true",
                    help="no model: a local timeline of what changed on screen, not reliable steps")
     s.add_argument("--note", help="anything the reporter said about the bug")
+    s.add_argument("--report", type=Path, help="file with the bug report's text (a ticket, an email), used as context")
     s.add_argument("--reuse", action="store_true", help="reuse what an earlier run already extracted into the output folder")
     s.add_argument("--model", default=os.environ.get("DEJABUG_STEPS_MODEL", "opus"))
     s.add_argument("--max-cost", type=float, default=float(os.environ.get("DEJABUG_MAX_COST", "1.00")))
