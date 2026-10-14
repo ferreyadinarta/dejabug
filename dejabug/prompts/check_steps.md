@@ -5,6 +5,7 @@ Write one corrected list. Check every step against the frames, one by one:
 - Is there a user action at that time? A highlight, a selected state, or content changing on its own is the app, not the user. Remove steps that are only the app reacting.
 - Is the kind right? Press-move-release is one drag; one word highlighted at once is a double-click; text appearing at the caret is typing; content changing with the pointer elsewhere is often a key.
 - Is it one gesture split into several steps, or the same action listed twice? Merge them. A run of clicks on neighbouring options, one per frame with the pointer never stopping, is usually one drag across them.
+- Hovers listed while something is being dragged are the drag's route: fold them into that drag's `text`.
 - Is the time the frame where the action happens (not where its result settles)? Fix it.
 - Is the target named the way a person would, using a visible label where there is one?
 
