@@ -80,7 +80,7 @@ def _ai_steps(a: argparse.Namespace, out: Path, video: Path) -> str | None:
     else:
         context = _context(a, video)
         usage = vision.write_steps(build_steps_prompt(out, target, context, api=True), out, target, a.model,
-                                   context=context)
+                                   drafts=int(os.environ.get("DEJABUG_DRAFTS", "1")), context=context)
     data = tidy(json.loads(target.read_text(encoding="utf-8")))
     target.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
     if usage.get("cost_usd"):

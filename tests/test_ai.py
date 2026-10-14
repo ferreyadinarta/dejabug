@@ -83,3 +83,15 @@ def test_film_skips_still_frames_and_keeps_full_size_copies(tmp_path):
     kept = sorted(p.name for p in (tmp_path / "film" / "frames").glob("*.jpg"))
     assert kept == ["0000.0s.jpg", "0001.5s.jpg", "0002.5s.jpg"]  # first, the change, the last
     assert len(list((tmp_path / "film").glob("*.jpg"))) == 1
+
+
+def test_vote_keeps_steps_most_drafts_share():
+    a = {"steps": [{"t": 1.0, "action": "click", "target": "A"}, {"t": 3.0, "action": "click", "target": "B"}],
+         "bug": {"t": 5.0, "what": "x"}}
+    b = {"steps": [{"t": 1.5, "action": "double_click", "target": "A"}, {"t": 7.0, "action": "drag", "target": "C"}],
+         "bug": {"t": 6.0, "what": "y"}}
+    c = {"steps": [{"t": 0.8, "action": "click", "target": "A"}, {"t": 7.2, "action": "select", "target": "C"}],
+         "bug": {"t": 9.0, "what": "z"}}
+    voted = vision.vote([a, b, c])
+    assert [(s["action"], s["target"]) for s in voted["steps"]] == [("click", "A"), ("drag", "C")]
+    assert voted["bug"]["what"] == "y"  # the middle bug time

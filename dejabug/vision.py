@@ -84,29 +84,60 @@ def _ask(content: list[dict], model: str) -> tuple[str, dict]:
     return _via_claude_code(content, model) if shutil.which("claude") else _via_api(content, model)
 
 
+KIND = {"select": "drag", "double_click": "click", "press": "press", "paste": "type"}
+
+
+def vote(drafts: list[dict], window: float = 1.0) -> dict:
+    """Keep the steps most drafts agree on: same kind of action at about the same time."""
+    need = len(drafts) // 2 + 1
+    found = sorted(((float(s.get("t", 0)), n, s) for n, d in enumerate(drafts) for s in d.get("steps", [])),
+                   key=lambda x: (x[0], x[1]))
+    clusters: list[list[tuple[float, int, dict]]] = []
+    for t, n, s in found:
+        kind = KIND.get(s.get("action"), s.get("action"))
+        for c in clusters:
+            if KIND.get(c[0][2].get("action"), c[0][2].get("action")) == kind and abs(t - c[0][0]) <= window \
+                    and n not in {m for _, m, _ in c}:
+                c.append((t, n, s))
+                break
+        else:
+            clusters.append([(t, n, s)])
+    steps = []
+    for c in clusters:
+        if len({n for _, n, _ in c}) < need:
+            continue
+        actions = [s.get("action") for _, _, s in c]
+        common = max(actions, key=actions.count)  # ties go to the earliest
+        steps.append(dict(next(s for _, _, s in c if s.get("action") == common)))
+    bugs = sorted((d["bug"] for d in drafts if d.get("bug")), key=lambda b: float(b.get("t", 0)))
+    return {"steps": sorted(steps, key=lambda s: float(s.get("t", 0))), "bug": bugs[len(bugs) // 2] if bugs else {}}
+
+
 def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", drafts: int = 1,
-                context: str = "") -> dict:
-    """Draft the steps from the film, then a checking call corrects the draft against the frames."""
+                context: str = "", check: bool = True) -> dict:
+    """Draft the steps from the film (several drafts are voted on), then a checking call corrects them against the frames."""
     content = _content(prompt, evidence)
     with ThreadPoolExecutor(drafts) as pool:
         results = list(pool.map(lambda _: _ask(content, model), range(drafts)))
     usage: dict = {}
-    texts = []
+    parsed = []
     for n, (text, u) in enumerate(results, 1):
         draft = target.with_name(f"steps_draft{n}.json")
         try:
             _save(text, draft)
-            texts.append(draft.read_text(encoding="utf-8"))
-        except SystemExit:
+            parsed.append(json.loads(draft.read_text(encoding="utf-8")))
+        except (SystemExit, json.JSONDecodeError):
             pass
         usage = {k: usage.get(k, 0) + v for k, v in u.items()}
-    if not texts:
+    if not parsed:
         raise SystemExit("the model didn't return steps")
+    merged = vote(parsed) if len(parsed) > 2 else parsed[0]
+    target.with_name("steps_voted.json").write_text(json.dumps(merged, indent=1, ensure_ascii=False), encoding="utf-8")
+    if not check:
+        target.write_text(json.dumps(merged, indent=1, ensure_ascii=False), encoding="utf-8")
+        return usage
     template = resources.files("dejabug").joinpath("prompts/check_steps.md").read_text(encoding="utf-8")
-    joined = "\n\n".join(f"Draft {n}:\n\n```json\n{t}\n```" for n, t in enumerate(texts, 1))
-    if len(texts) > 1:  # more drafts: agreement is a signal
-        template = template.replace("Write one corrected list.", "Write one corrected list. Steps the drafts agree on are "
-                                    "likely right; steps only one draft has need clear support in the frames.")
+    joined = f"Draft:\n\n```json\n{json.dumps(merged, indent=1, ensure_ascii=False)}\n```"
     template = template.replace("{context}", f"\n{context}\n" if context else "")
     text, more = _ask(_content(template.replace("{drafts}", joined), evidence, events=False), model)
     _save(text, target)
