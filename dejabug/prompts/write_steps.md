@@ -22,6 +22,8 @@ Work fast: in your first turn, Read every `film/*.jpg` sheet and `events.jsonl` 
 - A tooltip or hover highlight appearing where the pointer rests, with no click, is a hover. Include hovers the user seems to point at on purpose.
 - A button or tool looking selected is not proof it was clicked. List a click only when the pointer is on it, or nothing else could have caused the change. A highlight that changes while the pointer is elsewhere or mid-drag is the app doing it, and may be the bug.
 - Press, move and release is one drag. Don't add clicks before or after it for the same gesture.
+- A selection that jumps to the next option on almost every frame while the pointer slides along a row of swatches, buttons or menu items is usually one drag with the button held (scrubbing), not a click on each. Separate clicks have the pointer stop on each option for a moment.
+- The same kind of action repeated many times in a row (drawing several strokes, nudging something again and again) is listed once per distinct thing the user does, not once per frame.
 - Keyboard actions are the easiest to miss. Whenever content changes while the pointer stays away from it, ask which key did it (arrows, Tab, Enter, Escape, Delete, a shortcut).
 
 ## What to write
