@@ -1,7 +1,7 @@
 [project]
 name = "dejabug"
 version = "0.1.1"
-description = "Turn a screen recording of a bug into a test that fails the same way."
+description = "Turn a screen recording of a web-app bug into steps to reproduce, and into a test that fails the same way."
 readme = "README.md"
 license = "MIT"
 authors = [{ name = "Ferrey Adinarta" }]
