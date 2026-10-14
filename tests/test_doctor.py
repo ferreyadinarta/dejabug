@@ -16,6 +16,6 @@ def test_test_mode_needs_every_run_check():
     assert not ready(rows, "run")
 
 
-def test_no_model_still_leaves_steps_mode_ready():
-    rows = [("steps", OK, "Python 3.12", ""), ("steps", OPTIONAL, "model for accurate steps (Claude Code or ANTHROPIC_API_KEY)", "x")]
-    assert ready(rows, "steps")
+def test_steps_mode_needs_a_model():
+    rows = [("steps", OK, "Python 3.12", ""), ("steps", MISSING, "model that writes the steps (Claude Code or ANTHROPIC_API_KEY)", "x")]
+    assert not ready(rows, "steps")

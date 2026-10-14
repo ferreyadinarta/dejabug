@@ -22,14 +22,24 @@ jobs:
         run: |
           python -m venv fresh
           ${{ runner.os == 'Windows' && 'fresh\Scripts\python' || 'fresh/bin/python' }} -m pip install --quiet .
-      - name: Doctor
-        run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} doctor
-      - name: Steps from a local video
-        run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} steps demo/bug.webm -o out-local
+      - name: Doctor names the one missing piece (no model on CI)
+        shell: bash
+        run: |
+          out=$(${{ runner.os == 'Windows' && 'fresh/Scripts/dejabug' || 'fresh/bin/dejabug' }} doctor 2>&1 || true)
+          echo "$out"
+          [ "$(echo "$out" | grep -c '✗')" = "1" ] && echo "$out" | grep -q "ANTHROPIC_API_KEY"
+      - name: Without a model, steps says how to get one
+        shell: bash
+        run: |
+          out=$(${{ runner.os == 'Windows' && 'fresh/Scripts/dejabug' || 'fresh/bin/dejabug' }} steps demo/bug.webm -o out-local 2>&1 || true)
+          echo "$out"
+          echo "$out" | grep -q "ANTHROPIC_API_KEY"
+      - name: Local timeline from a video
+        run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} steps demo/bug.webm -o out-local --no-ai
       - name: Steps from a GitHub issue link
         env:
           GITHUB_TOKEN: ${{ github.token }}  # shared runner IPs hit the 60/hour anonymous limit
-        run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} steps https://github.com/mui/material-ui/issues/47203 -o out-issue
+        run: ${{ runner.os == 'Windows' && 'fresh\Scripts\dejabug' || 'fresh/bin/dejabug' }} steps https://github.com/mui/material-ui/issues/47203 -o out-issue --no-ai
       - name: Test mode says how to add Playwright
         shell: bash
         run: |

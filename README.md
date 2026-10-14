@@ -32,7 +32,7 @@ Bug (4.5s): After clicking Inception with disableCloseOnSelect, the open options
 to the top (The Shawshank Redemption) instead of preserving the scrolled position where Inception was visible
 ```
 
-Steps the model inferred rather than saw are marked "not sure". It uses Claude Code if you have it, or `ANTHROPIC_API_KEY`. With neither, or with `--no-ai`, dejabug falls back to simple rules that run offline for free but miss keys, drags and hidden pointers.
+Steps the model inferred rather than saw are marked "not sure". dejabug needs Claude Code or an `ANTHROPIC_API_KEY` for this. If the video can't leave your machine, `--no-ai` gives a local timeline of what changed on screen, with the frames to check it against. It's free and offline, but it isn't reliable steps: it misses most typing, keys and drags.
 
 ## A failing test, checked against the video
 
@@ -67,7 +67,7 @@ So dejabug checks its test against the video itself, and steps mode works from t
 ## Install
 
 ```bash
-pip install dejabug             # steps mode (uses Claude Code or ANTHROPIC_API_KEY if present)
+pip install dejabug             # steps mode (needs Claude Code or ANTHROPIC_API_KEY)
 pip install 'dejabug[run]'      # adds test mode (Playwright)
 dejabug doctor                  # checks your setup and prints the fix for anything missing
 ```
@@ -94,7 +94,7 @@ Add the dejabug Action and it replies to issues that have a video with steps wri
 ```bash
 dejabug steps bug.mov                                      # steps to reproduce, no app needed
 dejabug steps bug.mov --note "only on Safari"              # tell the model what the reporter said
-dejabug steps bug.mov --no-ai                              # offline, rule-based steps
+dejabug steps bug.mov --no-ai                              # no model: local timeline of what changed
 dejabug run bug.mov --url http://localhost:3000            # video to verified failing test
 dejabug run bug.mov --url http://localhost:3000 --format ts   # also write a @playwright/test spec
 dejabug run bug.mov --url http://localhost:3000 --note "coupon SAVE10 fails at checkout"
@@ -132,7 +132,7 @@ Steps mode uses `opus` (`--model`, or `DEJABUG_STEPS_MODEL`). Test mode's agent 
 | | Steps mode | Test mode (measured so far) |
 |---|---|---|
 | Time | under a minute | about 4 min per bug |
-| Cost | about $0.50 per video with `opus` (20 dev videos, 5 to 66 s long); free with `--no-ai` | about $0.45 per bug with `sonnet` |
+| Cost | about $0.50 per video with `opus` (20 dev videos, 5 to 66 s long); `--no-ai` timeline is free | about $0.45 per bug with `sonnet` |
 
 The test-mode numbers come from two runs on the development set below, not from the benchmark.
 

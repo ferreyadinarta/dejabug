@@ -97,22 +97,23 @@ def cmd_steps(a: argparse.Namespace) -> int:
         ingest(video, out)
     from dejabug import vision
 
-    model_ready = bool(os.environ.get("DEJABUG_AGENT")) or vision.available()
-    if a.ai and not model_ready:
-        _say(f"{RED}--ai needs Claude Code (https://claude.com/claude-code) or ANTHROPIC_API_KEY{RESET}")
+    if a.no_ai:
+        md = markdown(load(out), a.video, local=True)
+        (out / "timeline.md").write_text(md, encoding="utf-8")
+        _say(md)
+        _say(f"{DIM}saved to {out / 'timeline.md'}; frames every half second are in {out / 'film'}{RESET}")
+        return 0
+    if not (os.environ.get("DEJABUG_AGENT") or vision.available()):
+        _say(f"{RED}dejabug writes the steps with Claude, and found neither Claude Code nor ANTHROPIC_API_KEY.{RESET}\n"
+             f"Install Claude Code (https://claude.com/claude-code) or set ANTHROPIC_API_KEY, then run this again.\n"
+             f"To keep the video on this machine instead, add --no-ai for a timeline of what changed on screen.")
         return 1
-    if (a.ai or model_ready) and not a.no_ai:
-        md = _ai_steps(a, out, video)
-        if md is None:
-            return 1
-    else:
-        md = markdown(load(out), a.video)
+    md = _ai_steps(a, out, video)
+    if md is None:
+        return 1
     (out / "steps.md").write_text(md, encoding="utf-8")
     _say(md)
     _say(f"{DIM}saved to {out / 'steps.md'}{RESET}")
-    if not model_ready and not a.no_ai:
-        _say(f"{DIM}these steps come from simple rules and miss keys, drags and hidden pointers. Install Claude Code or "
-             f"set ANTHROPIC_API_KEY and a model will write them (much more accurate, about $0.50 a video).{RESET}")
     return 0
 
 
@@ -241,8 +242,9 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("steps", help="video -> written steps to reproduce (no app needed)")
     s.add_argument("video", help="video file or GitHub issue link")
     s.add_argument("-o", "--out", type=Path)
-    s.add_argument("--ai", action="store_true", help="require a model (the default when Claude Code or ANTHROPIC_API_KEY is found)")
-    s.add_argument("--no-ai", action="store_true", help="rule-based steps only: free, offline, less accurate")
+    s.add_argument("--ai", action="store_true", help=argparse.SUPPRESS)  # the default now; kept so old commands work
+    s.add_argument("--no-ai", action="store_true",
+                   help="no model: a local timeline of what changed on screen, not reliable steps")
     s.add_argument("--note", help="anything the reporter said about the bug")
     s.add_argument("--reuse", action="store_true", help="reuse what an earlier run already extracted into the output folder")
     s.add_argument("--model", default=os.environ.get("DEJABUG_STEPS_MODEL", "opus"))
