@@ -23,6 +23,8 @@ dejabug steps https://github.com/<owner>/<repo>/issues/<number>    # or a local 
 
 dejabug downloads the video attached to the issue, turns it into a film of frames every half second with what changed marked on each, and has Claude write the steps from it, with the issue text as context. It takes under a minute. Real output for [mui/material-ui#47203](https://github.com/mui/material-ui/issues/47203):
 
+<p align="center"><img src="docs/steps-demo.gif" alt="The reporter's video of an MUI Autocomplete bug plays on the left; dejabug's steps appear on the right as each action happens, ending with the bug: the list jumps back to the top after clicking Inception." width="800"></p>
+
 ```
 1. Click Checkboxes Favorites field (1.0s)
 2. Scroll options list in the Checkboxes popup (2.0s)
