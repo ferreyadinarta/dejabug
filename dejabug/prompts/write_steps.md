@@ -3,6 +3,7 @@ Write the steps to reproduce the bug shown in a screen recording, from evidence 
 ## Evidence in {evidence}
 
 - `film/*.jpg`: the recording every half second (every second for long videos), 4 frames per sheet with the time in the corner. A red box marks what changed since the previous frame; a yellow ring marks the mouse pointer when it was found. Frames where nothing changed are left out. This is where clicks, typing, keyboard actions and drags show up.
+- `film/zoom/*.jpg`: full-size close-ups of small regions that changed (a tooltip, a focus ring, a toggle, a highlighted row), named by frame time. Use them to see small changes and read small text.
 - `film/frames/<time>s.jpg`: the same frames at full size. Open them when you need to read small text, such as what was typed or a tooltip.
 - `contact_sheet.png` and `keyframes/<time>s.png`: frames where the screen settled after a change.
 - `events.jsonl`: what changed on screen, detected automatically. Treat it as hints, not truth: `click` events come from a pointer that rested before the screen changed and can be wrong; `hover` is the pointer resting with only a highlight changing; text from OCR can be misread.

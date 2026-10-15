@@ -29,6 +29,14 @@ def _content(prompt: str, evidence: Path, events: bool = True) -> list[dict]:
         parts.append({"type": "text", "text": f"film/{s.name}"})
         parts.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
                                                   "data": base64.b64encode(s.read_bytes()).decode()}})
+    zooms = sorted((evidence / "film" / "zoom").glob("*.jpg")) if (evidence / "film" / "zoom").exists() else []
+    if zooms:
+        parts.append({"type": "text", "text": "Close-ups at full size of small things that changed (file name: frame time, "
+                                              "then x,y of the top-left corner on the frame):"})
+    for z in zooms:
+        parts.append({"type": "text", "text": f"film/zoom/{z.name}"})
+        parts.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
+                                                  "data": base64.b64encode(z.read_bytes()).decode()}})
     log = evidence / "events.jsonl"
     if events and log.exists():
         parts.append({"type": "text", "text": "events.jsonl:\n" + log.read_text(encoding="utf-8")[:MAX_EVENTS_CHARS]})

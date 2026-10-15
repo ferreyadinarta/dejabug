@@ -554,6 +554,28 @@ def _changed_boxes(a: np.ndarray, b: np.ndarray, limit: int = 6) -> list[tuple[i
     return sorted(boxes, key=lambda bx: -bx[2] * bx[3])[:limit]
 
 
+def zoom_changes(film_dir: Path, limit: int = 40, pad: int = 24, small: int = 420) -> None:
+    """Full-size close-ups of small regions that changed between film frames: tooltips, focus rings, toggles."""
+    frames = sorted((film_dir / "frames").glob("*.jpg"))
+    dest = film_dir / "zoom"
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir()
+    found = []
+    for a, b in zip(frames, frames[1:]):
+        img = cv2.imread(str(b))
+        boxes = _changed_boxes(cv2.imread(str(a), cv2.IMREAD_GRAYSCALE), cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), limit=3)
+        H, W = img.shape[:2]
+        for x, y, w, h in boxes:
+            if w > small or h > small:  # big changes are readable on the sheets already
+                continue
+            x0, y0, x1, y1 = max(0, x - pad), max(0, y - pad), min(W, x + w + pad), min(H, y + h + pad)
+            crop = cv2.resize(img[y0:y1, x0:x1], None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+            found.append((b.stem, (x0, y0), crop))
+    for n, (t, (x, y), crop) in enumerate(found[:limit]):
+        cv2.imwrite(str(dest / f"{t}-{n:02d}@{x},{y}.jpg"), crop, [cv2.IMWRITE_JPEG_QUALITY, 85])
+
+
 def film(frames: list[tuple[float, Path]], track, dest: Path, per_sheet: int = 4, thumb: int = 780) -> None:
     """Frames every half second with what changed boxed in red and the pointer ringed in yellow.
 
@@ -757,6 +779,7 @@ def ingest(video: Path, out: Path) -> list[dict]:
                 f.write(json.dumps({"t": round(t, 1), "xy": [round(x), round(y)]}) + "\n")
     contact_sheet(keys, out / "contact_sheet.png")
     film(frames, track, out / "film")
+    zoom_changes(out / "film")
     shutil.rmtree(tmp)
     print(f"{len(frames)} frames -> {len(keys)} keyframes -> {len(events)} events  ({out})")
     return events
