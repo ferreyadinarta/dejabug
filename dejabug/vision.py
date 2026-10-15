@@ -44,8 +44,10 @@ def _save(text: str, target: Path) -> None:
 
 def _via_claude_code(content: list[dict], model: str) -> tuple[str, dict]:
     msg = {"type": "user", "message": {"role": "user", "content": content}}
+    effort = os.environ.get("DEJABUG_EFFORT")  # low, medium, high, xhigh, max
     run = subprocess.run([shutil.which("claude") or "claude", "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
                           "--model", model, "--max-turns", "1", "--tools", "", "--strict-mcp-config",
+                          *(["--effort", effort] if effort else []),
                           "--disable-slash-commands", "--setting-sources", "",
                           "--system-prompt", "You turn screen recordings of software bugs into reproduction steps."],
                          input=json.dumps(msg) + "\n", capture_output=True, text=True, encoding="utf-8", errors="replace")
@@ -63,6 +65,8 @@ def _via_claude_code(content: list[dict], model: str) -> tuple[str, dict]:
 
 def _via_api(content: list[dict], model: str) -> tuple[str, dict]:
     body = {"model": MODELS.get(model, model), "max_tokens": 4000, "messages": [{"role": "user", "content": content}]}
+    if os.environ.get("DEJABUG_EFFORT") in ("high", "xhigh", "max"):
+        body.update(max_tokens=20000, thinking={"type": "enabled", "budget_tokens": 12000})
     req = urllib.request.Request(API, data=json.dumps(body).encode(), method="POST", headers={
         "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01",
         "content-type": "application/json"})
