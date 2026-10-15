@@ -120,17 +120,18 @@ def write_steps(prompt: str, evidence: Path, target: Path, model: str = "opus", 
     with ThreadPoolExecutor(drafts) as pool:
         results = list(pool.map(lambda _: _ask(content, model), range(drafts)))
     usage: dict = {}
-    parsed = []
+    parsed, reply = [], ""
     for n, (text, u) in enumerate(results, 1):
         draft = target.with_name(f"steps_draft{n}.json")
+        reply = text
         try:
             _save(text, draft)
             parsed.append(json.loads(draft.read_text(encoding="utf-8")))
         except (SystemExit, json.JSONDecodeError):
             pass
         usage = {k: usage.get(k, 0) + v for k, v in u.items()}
-    if not parsed:
-        raise SystemExit("the model didn't return steps")
+    if not parsed:  # e.g. a usage limit: show what the model said
+        raise SystemExit(f"the model didn't return steps: {reply.strip()[:300] or '(empty reply)'}")
     merged = vote(parsed) if len(parsed) > 2 else parsed[0]
     target.with_name("steps_voted.json").write_text(json.dumps(merged, indent=1, ensure_ascii=False), encoding="utf-8")
     if not check:
