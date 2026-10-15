@@ -9,4 +9,10 @@ export PY="${SRC:-$here}/.venv/bin/python"
 videos=$1; out=$2; shift 2
 export EXTRA="$*" VIDEOS="$videos" OUT="$out"
 mkdir -p "$out"
-ls "$videos" | xargs -P "${JOBS:-3}" -I{} sh -c 'f="{}"; id="${f%.*}"; [ -n "$SKIP_DONE" ] && [ -f "$OUT/$id/steps.md" ] && exit 0; set --; [ -n "$REPORTS" ] && set -- --report "$REPORTS/$id.md"; "$PY" -P -m dejabug.cli steps "$VIDEOS/$f" -o "$OUT/$id" $EXTRA "$@" > "$OUT/$id.log" 2>&1; echo "$id done"'
+# file name as $1 (BSD xargs -I stops substituting once the command passes 255 bytes)
+ls "$videos" | xargs -P "${JOBS:-3}" -n 1 sh -c '
+  f="$1"; id="${f%.*}"
+  [ -n "$SKIP_DONE" ] && [ -f "$OUT/$id/steps.md" ] && exit 0
+  set --; [ -n "$REPORTS" ] && set -- --report "$REPORTS/$id.md"
+  "$PY" -P -m dejabug.cli steps "$VIDEOS/$f" -o "$OUT/$id" $EXTRA "$@" > "$OUT/$id.log" 2>&1
+  echo "$id done"' _
