@@ -13,7 +13,7 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-> **Status: early.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) showed that the first version of `dejabug steps` missed most of what users do (it found 9 of 175 actions). Steps are now written by a model that watches the whole recording. On a separate set of 20 development videos, in two runs, it found about half of the actions in the median video (52% and 55%), and 49% to 62% of all the steps it listed were right. That's far better than before, but not yet good enough to trust without checking. The benchmark will be rerun once, on the same 20 videos, before release. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
+> **Status: early.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) showed that the first version of `dejabug steps` missed most of what users do (it found 9 of 175 actions). 0.2.0 rebuilds it: a model watches the whole recording and a second pass checks every step against the frames. On a separate set of 20 development videos, given the issue text, it found 62% to 67% of the actions in the median video, 68% to 74% of all the steps it listed were right, and it named the bug moment in 14 to 17 of the 20 (two runs). From the video alone it does worse: about 56% found and 50% right in earlier runs. Check its steps before relying on them. The 20-video benchmark will be rerun once on 21 October and the result published here. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
 
 ## Steps to reproduce, from a bug video
 
@@ -34,7 +34,7 @@ Bug (4.5s): After clicking Inception with disableCloseOnSelect, the open options
 to the top (The Shawshank Redemption) instead of preserving the scrolled position where Inception was visible
 ```
 
-Steps the model inferred rather than saw are marked "not sure". It works best when it can read what the reporter wrote: give it the issue link, or the ticket's text with `--report`. On our development videos that raised the share of correct steps from about 55% to about 70%, and it found the bug moment in about 16 of 20 videos instead of 10. dejabug needs Claude Code or an `ANTHROPIC_API_KEY` for this. If the video can't leave your machine, `--no-ai` gives a local timeline of what changed on screen, with the frames to check it against. It's free and offline, but it isn't reliable steps: it misses most typing, keys and drags.
+Steps the model inferred rather than saw are marked "not sure". It works best when it can read what the reporter wrote: give it the issue link, or the ticket's text with `--report`. On our development videos that raised the share of correct steps from about 50% to about 70%, and it found the bug moment in 14 to 17 of 20 videos instead of 7 or 8. dejabug needs Claude Code or an `ANTHROPIC_API_KEY` for this. If the video can't leave your machine, `--no-ai` gives a local timeline of what changed on screen, with the frames to check it against. It's free and offline, but it isn't reliable steps: it misses most typing, keys and drags.
 
 ## A failing test, checked against the video
 

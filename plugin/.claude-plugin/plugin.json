@@ -1,6 +1,6 @@
 {
   "name": "dejabug",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Turn a screen recording of a bug into a Playwright test that fails the same way, checked against the video.",
   "author": { "name": "Ferrey Adinarta" },
   "homepage": "https://github.com/ferreyadinarta/dejabug",
