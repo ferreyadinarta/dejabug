@@ -135,7 +135,7 @@ Steps mode uses `opus` (`--model`, or `DEJABUG_STEPS_MODEL`). Test mode's agent 
 | | Steps mode | Test mode (measured so far) |
 |---|---|---|
 | Time | under a minute | about 4 min per bug |
-| Cost | about $0.50 per video with `opus` (20 dev videos, 5 to 66 s long); `--no-ai` timeline is free | about $0.45 per bug with `sonnet` |
+| Cost | about $1.30 per video with `opus` at max effort, about $0.50 with `DEJABUG_EFFORT=medium` (20 dev videos, 5 to 66 s long); `--no-ai` timeline is free | about $0.45 per bug with `sonnet` |
 
 The test-mode numbers come from two runs on the development set below, not from the benchmark.
 
