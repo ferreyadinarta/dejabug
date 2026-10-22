@@ -18,6 +18,8 @@ API = "https://api.anthropic.com/v1/messages"
 MODELS = {"sonnet": "claude-sonnet-5-5", "opus": "claude-opus-5-5", "haiku": "claude-haiku-5-5"}
 MAX_SHEETS = 40
 MAX_EVENTS_CHARS = 30_000
+CALL_TIMEOUT = 1800  # max effort can think for over 10 minutes on a long video
+RETRYABLE = ("Unable to connect", "ECONNRESET", "overloaded", "timed out", "529", "503")
 
 
 def _content(prompt: str, evidence: Path, events: bool = True) -> list[dict]:
@@ -59,7 +61,7 @@ def _via_claude_code(content: list[dict], model: str) -> tuple[str, dict]:
                           "--disable-slash-commands", "--setting-sources", "",
                           "--system-prompt", "You turn screen recordings of software bugs into reproduction steps."],
                          input=json.dumps(msg) + "\n", capture_output=True, text=True, encoding="utf-8", errors="replace",
-                         timeout=600)
+                         timeout=CALL_TIMEOUT)
     for line in reversed(run.stdout.splitlines()):
         try:
             d = json.loads(line)
@@ -80,7 +82,7 @@ def _via_api(content: list[dict], model: str) -> tuple[str, dict]:
         "x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01",
         "content-type": "application/json"})
     try:
-        with urllib.request.urlopen(req, timeout=300) as r:
+        with urllib.request.urlopen(req, timeout=CALL_TIMEOUT) as r:
             data = json.loads(r.read())
     except urllib.error.HTTPError as e:
         raise SystemExit(f"Claude API error {e.code}: {e.read().decode('utf-8', 'replace')[:300]}") from None
@@ -93,8 +95,27 @@ def available() -> bool:
     return bool(shutil.which("claude") or os.environ.get("ANTHROPIC_API_KEY"))
 
 
-def _ask(content: list[dict], model: str) -> tuple[str, dict]:
-    return _via_claude_code(content, model) if shutil.which("claude") else _via_api(content, model)
+def _ask(content: list[dict], model: str, tries: int = 2) -> tuple[str, dict]:
+    """One model call, retried once when the network or the service drops it."""
+    call = _via_claude_code if shutil.which("claude") else _via_api
+    for attempt in range(tries):
+        last = attempt + 1 == tries
+        try:
+            text, usage = call(content, model)
+        except subprocess.TimeoutExpired:
+            if last:
+                raise SystemExit(f"the model took longer than {CALL_TIMEOUT // 60} minutes; "
+                                 "try DEJABUG_EFFORT=high") from None
+            continue
+        except SystemExit as e:
+            if last or not any(r in str(e) for r in RETRYABLE):
+                raise
+            continue
+        dropped = any(r in text for r in RETRYABLE) and not re.search(r"\{.*\}", text, re.S)
+        if dropped and not last:
+            continue
+        return text, usage
+    raise SystemExit("the model call failed")
 
 
 KIND = {"select": "drag", "double_click": "click", "press": "press", "paste": "type"}

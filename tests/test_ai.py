@@ -101,3 +101,22 @@ def test_tidy_fixes_made_up_action_names():
     data = {"steps": [{"t": 0.0, "action": "load", "target": "page"}, {"t": 1.0, "action": "move", "target": "Save"},
                       {"t": 2.0, "action": "double-click", "target": "word"}]}
     assert [s["action"] for s in tidy(data)["steps"]] == ["hover", "double_click"]
+
+
+def test_ask_retries_a_dropped_connection(monkeypatch):
+    replies = iter(["API Error: Unable to connect to API (ECONNRESET)", '{"steps": [], "bug": {}}'])
+    monkeypatch.setattr(vision.shutil, "which", lambda _: "claude")
+    monkeypatch.setattr(vision, "_via_claude_code", lambda c, m: (next(replies), {}))
+    assert vision._ask([], "opus")[0].startswith("{")
+
+
+def test_ask_gives_up_on_a_timeout_with_a_hint(monkeypatch):
+    import subprocess
+    import pytest
+
+    def slow(c, m):
+        raise subprocess.TimeoutExpired("claude", 1)
+    monkeypatch.setattr(vision.shutil, "which", lambda _: "claude")
+    monkeypatch.setattr(vision, "_via_claude_code", slow)
+    with pytest.raises(SystemExit, match="DEJABUG_EFFORT=high"):
+        vision._ask([], "opus")
