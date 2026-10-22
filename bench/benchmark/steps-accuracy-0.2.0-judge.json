@@ -1,0 +1,382 @@
+{
+ "summary": {
+  "cases": 20,
+  "scored": 12,
+  "median_recall": 0.75,
+  "median_precision": 0.6666666666666666,
+  "pooled_recall": 0.6338028169014085,
+  "pooled_precision": 0.569620253164557,
+  "bug_moment": 5,
+  "judge_cost_usd": 0.82
+ },
+ "cases": [
+  {
+   "id": "TypeCellOS_BlockNote-1875",
+   "matched": 4,
+   "reference": 5,
+   "listed": 8,
+   "recall": 0.8,
+   "precision": 0.5,
+   "bug_moment": "no",
+   "why": "Tool bug is placed at 8.0s with wrong symptom (placeholder + children visible simultaneously) instead of 1.5s/5.5s where Enter wrongly creates a sibling toggle instead of a child block.",
+   "matches": [
+    [
+     1,
+     2
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     4,
+     5
+    ],
+    [
+     5,
+     6
+    ]
+   ],
+   "cost_usd": 0.11761649999999998
+  },
+  {
+   "id": "TypeCellOS_BlockNote-2020",
+   "error": "no steps.md"
+  },
+  {
+   "id": "TypeCellOS_BlockNote-2109",
+   "matched": 1,
+   "reference": 4,
+   "listed": 6,
+   "recall": 0.25,
+   "precision": 0.16666666666666666,
+   "bug_moment": "no",
+   "why": "Tool missed both drags (labeled them clicks), so ref actions 2 and 4 unmatched; tool's bug at 10.5 s describes accidental block creation on click, not the missing drop-target-inside-empty-toggle symptom during drag at 5.0 s.",
+   "matches": [
+    [
+     1,
+     1
+    ]
+   ],
+   "cost_usd": 0.120684
+  },
+  {
+   "id": "TypeCellOS_BlockNote-2378",
+   "matched": 4,
+   "reference": 4,
+   "listed": 6,
+   "recall": 1.0,
+   "precision": 0.6666666666666666,
+   "bug_moment": "yes",
+   "why": "All 4 reference actions matched within time bounds; bug line at exact 6.0s names the new Toggle block and the visible symptom (Hi/There/dede appearing inside it).",
+   "matches": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     3,
+     4
+    ],
+    [
+     4,
+     5
+    ]
+   ],
+   "cost_usd": 0.114969
+  },
+  {
+   "id": "TypeCellOS_BlockNote-2559",
+   "matched": 6,
+   "reference": 7,
+   "listed": 9,
+   "recall": 0.8571428571428571,
+   "precision": 0.6666666666666666,
+   "bug_moment": "yes",
+   "why": "Tool's bug time (26.0s) is 0.5s past reference range end (25.5s), within 1s threshold; names visible symptom (block vanishes on drop) matching reference secondary description at that moment.",
+   "matches": [
+    [
+     2,
+     3
+    ],
+    [
+     3,
+     4
+    ],
+    [
+     4,
+     6
+    ],
+    [
+     5,
+     7
+    ],
+    [
+     6,
+     8
+    ],
+    [
+     7,
+     9
+    ]
+   ],
+   "cost_usd": 0.13887525
+  },
+  {
+   "id": "adobe_react-spectrum-6809",
+   "matched": 8,
+   "reference": 9,
+   "listed": 10,
+   "recall": 0.8888888888888888,
+   "precision": 0.8,
+   "bug_moment": "no",
+   "why": "Tool bug line is at 11.0s (not within 1s of any reference bug time 1.5/4.0/8.0/13.5) and describes wrong symptom (selection not persisting) rather than missing focus ring on programmatic focus.",
+   "matches": [
+    [
+     1,
+     1
+    ],
+    [
+     3,
+     2
+    ],
+    [
+     4,
+     4
+    ],
+    [
+     5,
+     5
+    ],
+    [
+     6,
+     6
+    ],
+    [
+     7,
+     7
+    ],
+    [
+     8,
+     8
+    ],
+    [
+     9,
+     10
+    ]
+   ],
+   "cost_usd": 0.049671900000000005
+  },
+  {
+   "id": "excalidraw_excalidraw-8936",
+   "error": "no steps.md"
+  },
+  {
+   "id": "excalidraw_excalidraw-9277",
+   "error": "no steps.md"
+  },
+  {
+   "id": "excalidraw_excalidraw-9423",
+   "error": "no steps.md"
+  },
+  {
+   "id": "facebook_lexical-8885",
+   "error": "no steps.md"
+  },
+  {
+   "id": "facebook_lexical-9126",
+   "matched": 4,
+   "reference": 11,
+   "listed": 7,
+   "recall": 0.36363636363636365,
+   "precision": 0.5714285714285714,
+   "bug_moment": "yes",
+   "why": "Tool says bug at 11.0s in Title field with placeholder overlap \u2014 within 1s of reference 10.5s and names same element and symptom; type\u2260paste so steps 5/7 don't match refs 8/10; key Enter\u2260click so step 3 doesn't match ref 4.",
+   "matches": [
+    [
+     1,
+     1
+    ],
+    [
+     3,
+     2
+    ],
+    [
+     7,
+     4
+    ],
+    [
+     9,
+     6
+    ]
+   ],
+   "cost_usd": 0.0453519
+  },
+  {
+   "id": "mui_mui-x-20364",
+   "matched": 9,
+   "reference": 12,
+   "listed": 13,
+   "recall": 0.75,
+   "precision": 0.6923076923076923,
+   "bug_moment": "no",
+   "why": "Tool places bug at 4.0s (>5s off reference 10.0s) and describes wrong symptom (Item data panel empty) instead of the actual bug (click on band 6 discarded, Axis data stays '3').",
+   "matches": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     4,
+     4
+    ],
+    [
+     5,
+     5
+    ],
+    [
+     6,
+     6
+    ],
+    [
+     7,
+     7
+    ],
+    [
+     9,
+     12
+    ],
+    [
+     11,
+     13
+    ]
+   ],
+   "cost_usd": 0.062339399999999996
+  },
+  {
+   "id": "mui_mui-x-23735",
+   "matched": 2,
+   "reference": 2,
+   "listed": 3,
+   "recall": 1.0,
+   "precision": 0.6666666666666666,
+   "bug_moment": "yes",
+   "why": "Tool bug line at 2.0s hits reference primary 0:02.0 exactly and names blank body/rows disappearing matching the blank viewport symptom.",
+   "matches": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "cost_usd": 0.02840565
+  },
+  {
+   "id": "tldraw_tldraw-6191",
+   "matched": 1,
+   "reference": 4,
+   "listed": 6,
+   "recall": 0.25,
+   "precision": 0.16666666666666666,
+   "bug_moment": "no",
+   "why": "Tool misidentifies the entire scenario (no key presses, wrong drag targets) and names a selection-outline offset bug at 0.5s instead of the jump/translate bug at 5.5s during the held-drag rotation.",
+   "matches": [
+    [
+     1,
+     1
+    ]
+   ],
+   "cost_usd": 0.0333594
+  },
+  {
+   "id": "ueberdosis_tiptap-5472",
+   "error": "no steps.md"
+  },
+  {
+   "id": "ueberdosis_tiptap-7125",
+   "matched": 3,
+   "reference": 4,
+   "listed": 3,
+   "recall": 0.75,
+   "precision": 1.0,
+   "bug_moment": "no",
+   "why": "Tool misses reference action #1 (Option+Space at 0:00); tool bug timestamp is 11.0s vs reference 6.5s (gap >1s) and misidentifies symptom as excess vertical spacing rather than caret scrolling failure.",
+   "matches": [
+    [
+     2,
+     1
+    ],
+    [
+     3,
+     2
+    ],
+    [
+     4,
+     3
+    ]
+   ],
+   "cost_usd": 0.0331494
+  },
+  {
+   "id": "ueberdosis_tiptap-8014",
+   "error": "no steps.md"
+  },
+  {
+   "id": "ueberdosis_tiptap-8164",
+   "matched": 2,
+   "reference": 6,
+   "listed": 3,
+   "recall": 0.3333333333333333,
+   "precision": 0.6666666666666666,
+   "bug_moment": "yes",
+   "why": "Bug line at 5.0s matches reference bug @0:05.0 and correctly names TOC node with selection highlight symptom; triple-click (#1) listed as plain click (kind mismatch), drags (#4,#5) and final click (#6) omitted entirely.",
+   "matches": [
+    [
+     2,
+     2
+    ],
+    [
+     3,
+     3
+    ]
+   ],
+   "cost_usd": 0.03769065
+  },
+  {
+   "id": "ueberdosis_tiptap-8334",
+   "error": "no steps.md"
+  },
+  {
+   "id": "xyflow_xyflow-5508",
+   "matched": 1,
+   "reference": 3,
+   "listed": 5,
+   "recall": 0.3333333333333333,
+   "precision": 0.2,
+   "bug_moment": "no",
+   "why": "Only the right-edge resize drag (ref #2 \u2194 listed #4, both at 6.5 s) matches; ref #1 and #3 are node-body drags with no corresponding listed action, and the tool's bug timestamp (3.5 s) is ~4.5 s away from the reference bug moment (8.0 s), missing the 1 s window.",
+   "matches": [
+    [
+     2,
+     4
+    ]
+   ],
+   "cost_usd": 0.035718150000000004
+  }
+ ]
+}
