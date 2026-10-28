@@ -15,3 +15,6 @@ bench/benchmark/out/
 bench/devset/videos/
 bench/devset/frames/
 bench/devset/out/
+bench/benchmark-v2/videos/
+bench/benchmark-v2/frames/
+bench/benchmark-v2/out/
