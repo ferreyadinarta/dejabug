@@ -1,0 +1,56 @@
+name: Bug report
+description: Something went wrong running dejabug.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: dejabug version
+      description: Run `dejabug --version` to check.
+      placeholder: "0.2.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options:
+        - macOS
+        - Linux
+        - Windows
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      placeholder: "dejabug steps https://github.com/..."
+    validations:
+      required: true
+  - type: textarea
+    id: video
+    attributes:
+      label: Recording
+      description: Attach the video or paste the GitHub issue URL that has it.
+      placeholder: "Drag a file here or paste a URL"
+    validations:
+      required: false
+  - type: input
+    id: app
+    attributes:
+      label: App in the video
+      description: What web app or desktop app does the recording show?
+      placeholder: "GitHub, Notion, ..."
+    validations:
+      required: false
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: false
