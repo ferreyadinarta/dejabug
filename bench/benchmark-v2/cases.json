@@ -1,0 +1,202 @@
+[
+  {
+    "bytes": 7999478,
+    "fix": "PR https://github.com/mui/mui-x/pull/23942",
+    "id": "mui_mui-x-15758",
+    "n_videos_in_body": 1,
+    "title": "[pickers][DigitalClock] `mouseup` scrolling issue",
+    "url": "https://github.com/mui/mui-x/issues/15758",
+    "video_file": "mui_mui-x-15758.mov",
+    "video_url": "https://github.com/user-attachments/assets/e13df325-b454-47c4-8fce-bc2fdb8ddc00"
+  },
+  {
+    "bytes": 166427,
+    "fix": "PR https://github.com/tldraw/tldraw/pull/11114",
+    "id": "tldraw_tldraw-11113",
+    "n_videos_in_body": 1,
+    "title": "Empty line below a heading in a text shape can't be deleted",
+    "url": "https://github.com/tldraw/tldraw/issues/11113",
+    "video_file": "tldraw_tldraw-11113.mp4",
+    "video_url": "https://github.com/user-attachments/assets/bbc6e210-bb5c-47ea-9fb0-7a856d3e07df"
+  },
+  {
+    "bytes": 99345,
+    "fix": "PR https://github.com/tldraw/tldraw/pull/11115",
+    "id": "tldraw_tldraw-11112",
+    "n_videos_in_body": 1,
+    "title": "Page menu stays stuck mid-drag after pressing Escape during a page reorder",
+    "url": "https://github.com/tldraw/tldraw/issues/11112",
+    "video_file": "tldraw_tldraw-11112.mp4",
+    "video_url": "https://github.com/user-attachments/assets/473fa5db-d028-41cd-9b18-dce5b3b9ebbd"
+  },
+  {
+    "bytes": 2526445,
+    "fix": "PR https://github.com/mui/mui-x/pull/23862",
+    "id": "mui_mui-x-15352",
+    "n_videos_in_body": 1,
+    "title": "[data grid] Select All keyboard shortcut doesn't work if a row is selected by clicking to the right of the last column",
+    "url": "https://github.com/mui/mui-x/issues/15352",
+    "video_file": "mui_mui-x-15352.mov",
+    "video_url": "https://github.com/user-attachments/assets/b62ba302-0fcb-421d-9144-3e02c19ef81c"
+  },
+  {
+    "bytes": 324869,
+    "fix": "PR https://github.com/ueberdosis/tiptap/pull/7888",
+    "id": "ueberdosis_tiptap-6906",
+    "n_videos_in_body": 1,
+    "title": "[BULLET LIST] Instead of moving up the items of the list, the items get deleted on pressing DEL.",
+    "url": "https://github.com/ueberdosis/tiptap/issues/6906",
+    "video_file": "ueberdosis_tiptap-6906.mp4",
+    "video_url": "https://github.com/user-attachments/assets/0828e5b9-a59d-41f5-9a79-4bc3a80f15e6"
+  },
+  {
+    "bytes": 289450,
+    "fix": "PR https://github.com/ueberdosis/tiptap/pull/7889",
+    "id": "ueberdosis_tiptap-7023",
+    "n_videos_in_body": 1,
+    "title": "[Bug]: @tiptap/extension-file-handler dragging inline Image inserts duplicate instead of moving",
+    "url": "https://github.com/ueberdosis/tiptap/issues/7023",
+    "video_file": "ueberdosis_tiptap-7023.mp4",
+    "video_url": "https://github.com/user-attachments/assets/614865ff-a178-441e-ad91-997583a90023"
+  },
+  {
+    "bytes": 522304,
+    "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/2770",
+    "id": "TypeCellOS_BlockNote-2760",
+    "n_videos_in_body": 4,
+    "title": "Table cell text color & background color not applied via Table Handle Menu",
+    "url": "https://github.com/TypeCellOS/BlockNote/issues/2760",
+    "video_file": "TypeCellOS_BlockNote-2760.mov",
+    "video_url": "https://github.com/user-attachments/assets/08c09bf1-f651-4c50-94d3-d8d0d690cdbe"
+  },
+  {
+    "bytes": 3784062,
+    "fix": "PR https://github.com/shadcn-ui/ui/pull/10727",
+    "id": "shadcn-ui_ui-10726",
+    "n_videos_in_body": 1,
+    "title": "[bug]: The directory list doesn’t load if you navigate directly to the page.",
+    "url": "https://github.com/shadcn-ui/ui/issues/10726",
+    "video_file": "shadcn-ui_ui-10726.mov",
+    "video_url": "https://github.com/user-attachments/assets/9bb96799-24c9-4a32-b489-b31ff575de77"
+  },
+  {
+    "bytes": 261320,
+    "fix": "PR https://github.com/xyflow/xyflow/pull/5784",
+    "id": "xyflow_xyflow-5728",
+    "n_videos_in_body": 1,
+    "title": "NodeResizer allows resizing node beyond `node.extent`",
+    "url": "https://github.com/xyflow/xyflow/issues/5728",
+    "video_file": "xyflow_xyflow-5728.mp4",
+    "video_url": "https://github.com/user-attachments/assets/d31ab1f2-baac-4e81-b9ff-89e4650d98be"
+  },
+  {
+    "bytes": 1945796,
+    "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/2722",
+    "id": "TypeCellOS_BlockNote-2330",
+    "n_videos_in_body": 1,
+    "title": "pasteHandler doesn't work correctly for list items when their content is empty prior to pasting text.",
+    "url": "https://github.com/TypeCellOS/BlockNote/issues/2330",
+    "video_file": "TypeCellOS_BlockNote-2330.mov",
+    "video_url": "https://github.com/user-attachments/assets/47196d1c-db14-48c2-8bc1-fbc4cb2bbf10"
+  },
+  {
+    "bytes": 6623075,
+    "fix": "PR https://github.com/adobe/react-spectrum/pull/9813",
+    "id": "adobe_react-spectrum-9994",
+    "n_videos_in_body": 1,
+    "title": "NumberField button stays on data-pressed state even after the press has been released",
+    "url": "https://github.com/adobe/react-spectrum/issues/9994",
+    "video_file": "adobe_react-spectrum-9994.mp4",
+    "video_url": "https://github.com/user-attachments/assets/61e2c905-90b8-4a6e-9f77-dbd460c26ae9"
+  },
+  {
+    "bytes": 2560529,
+    "fix": "PR https://github.com/tldraw/tldraw/pull/8794",
+    "id": "tldraw_tldraw-8787",
+    "n_videos_in_body": 1,
+    "title": "Inconsistent button types on video import",
+    "url": "https://github.com/tldraw/tldraw/issues/8787",
+    "video_file": "tldraw_tldraw-8787.mov",
+    "video_url": "https://github.com/user-attachments/assets/7fd6dc77-c16a-4602-b823-0b4dcad9b392"
+  },
+  {
+    "bytes": 5083157,
+    "fix": "PR https://github.com/ueberdosis/tiptap/pull/7789",
+    "id": "ueberdosis_tiptap-7776",
+    "n_videos_in_body": 1,
+    "title": "Markdown serialization is inconsistent with the parsed content",
+    "url": "https://github.com/ueberdosis/tiptap/issues/7776",
+    "video_file": "ueberdosis_tiptap-7776.mov",
+    "video_url": "https://github.com/user-attachments/assets/0b65c21a-18f8-453e-9c9f-3ffec058f6ce"
+  },
+  {
+    "bytes": 2300685,
+    "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/2696",
+    "id": "TypeCellOS_BlockNote-2572",
+    "n_videos_in_body": 1,
+    "title": "Can't click to see comment w/ link",
+    "url": "https://github.com/TypeCellOS/BlockNote/issues/2572",
+    "video_file": "TypeCellOS_BlockNote-2572.webm",
+    "video_url": "https://github.com/user-attachments/assets/7443af3a-e10a-402c-a2fa-9b7461c9cdc4"
+  },
+  {
+    "bytes": 870352,
+    "fix": "PR https://github.com/hoppscotch/hoppscotch/pull/6155",
+    "id": "hoppscotch_hoppscotch-6154",
+    "n_videos_in_body": 1,
+    "title": "[bug]: Variable hover tooltip/popover disappears (not clickable)",
+    "url": "https://github.com/hoppscotch/hoppscotch/issues/6154",
+    "video_file": "hoppscotch_hoppscotch-6154.mp4",
+    "video_url": "https://github.com/user-attachments/assets/53115f00-9940-4e4e-b902-3d6d96f35b9f"
+  },
+  {
+    "bytes": 1112104,
+    "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/2684",
+    "id": "TypeCellOS_BlockNote-2005",
+    "n_videos_in_body": 1,
+    "title": "Applying default color sometimes doesn't work",
+    "url": "https://github.com/TypeCellOS/BlockNote/issues/2005",
+    "video_file": "TypeCellOS_BlockNote-2005.webm",
+    "video_url": "https://github.com/user-attachments/assets/b8f4d587-cc8e-4738-8807-2d63f478b6f6"
+  },
+  {
+    "bytes": 16646549,
+    "fix": "PR https://github.com/mui/mui-x/pull/22088",
+    "id": "mui_mui-x-22080",
+    "n_videos_in_body": 1,
+    "title": "Flex column is cut off after resizing",
+    "url": "https://github.com/mui/mui-x/issues/22080",
+    "video_file": "mui_mui-x-22080.mp4",
+    "video_url": "https://github.com/user-attachments/assets/01869937-2922-44dc-9c90-4a13665f6f81"
+  },
+  {
+    "bytes": 2300680,
+    "fix": "PR https://github.com/mui/material-ui/pull/43839",
+    "id": "mui_material-ui-39539",
+    "n_videos_in_body": 1,
+    "title": "[text field] InputBase Auto-fill keyframes may cause unwanted animations",
+    "url": "https://github.com/mui/material-ui/issues/39539",
+    "video_file": "mui_material-ui-39539.mov",
+    "video_url": "https://github.com/user-attachments/assets/b1135362-65cf-4c89-9c6c-c8ff1b4d9e1a"
+  },
+  {
+    "bytes": 941768,
+    "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/2575",
+    "id": "TypeCellOS_BlockNote-2567",
+    "n_videos_in_body": 1,
+    "title": "Clicking outside of the legend input doesn't save",
+    "url": "https://github.com/TypeCellOS/BlockNote/issues/2567",
+    "video_file": "TypeCellOS_BlockNote-2567.webm",
+    "video_url": "https://github.com/user-attachments/assets/5d4f6ebf-f0a5-4897-bf77-a9acd5f2f116"
+  },
+  {
+    "bytes": 463706,
+    "fix": "PR https://github.com/TypeCellOS/BlockNote/pull/2575",
+    "id": "TypeCellOS_BlockNote-2568",
+    "n_videos_in_body": 1,
+    "title": "Hitting enter doesn't close the legend input",
+    "url": "https://github.com/TypeCellOS/BlockNote/issues/2568",
+    "video_file": "TypeCellOS_BlockNote-2568.webm",
+    "video_url": "https://github.com/user-attachments/assets/d8fc1409-618b-4d47-82df-ddfeac4947f1"
+  }
+]

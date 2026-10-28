@@ -1,0 +1,41 @@
+Benchmark v2 sample query (frozen and committed before any candidate was looked at)
+Date frozen: 2026-10-28
+Run with: the authenticated GitHub CLI (gh api -X GET search/issues), read-only.
+dejabug under test: recorded in steps-accuracy-v2.md before the run, as a git tag.
+
+Why v2: the 20 videos of the first benchmark were seen in the 21 October run, so a new sample is needed.
+Everything below is the first benchmark's rule (bench/benchmark/query.txt) with two changes: the date
+window ends today, and issues that the first benchmark or the development set already examined are skipped.
+
+QUERY TEMPLATE (run once per repo, same template):
+
+  repo:<REPO> is:issue is:closed "user-attachments/assets" in:body closed:2025-10-13..2026-10-28
+
+REPOS (the same 15):
+  excalidraw/excalidraw
+  tldraw/tldraw
+  mui/material-ui
+  mui/mui-x
+  facebook/docusaurus
+  chakra-ui/chakra-ui
+  xyflow/xyflow
+  facebook/lexical
+  ueberdosis/tiptap
+  TypeCellOS/BlockNote
+  adobe/react-spectrum
+  radix-ui/primitives
+  ant-design/ant-design
+  hoppscotch/hoppscotch
+  shadcn-ui/ui
+
+SKIP: any issue listed in bench/benchmark/scanned.csv (first benchmark, closed 2026-07-17 to 2026-10-12)
+or bench/devset/scanned.csv (development set, closed 2026-06-02 to 2026-07-17). Skipped issues are not
+written to scanned.csv. In practice the order is: issues closed 2026-10-13 to 2026-10-28 first, then
+issues closed before 2026-06-02.
+
+SORT ORDER: all results of the 15 queries are merged (all pages), then sorted locally by closed_at
+descending (most recently closed first); ties by repo then number. Candidates are examined strictly in
+that order until 20 qualify. Every examined issue goes to scanned.csv with the reason it was skipped.
+
+CONDITIONS 1-4, ACCEPTED BUG LABELS, VIDEO, FIX and LOCAL APP: exactly as in bench/benchmark/query.txt.
+Videos over 100 MB are skipped and logged as such.
