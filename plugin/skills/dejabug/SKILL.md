@@ -11,7 +11,7 @@ The user has a recording of a bug. You turn it into a Playwright test that perfo
 
 Run `dejabug doctor`. If `dejabug` isn't installed, install it with `pip install 'dejabug[run]'` (or prefix every command with `uvx --from 'dejabug[run]'` if uv is available). Doctor prints one exact fix for anything else that's missing; apply it and run doctor again.
 
-For written steps only, `pip install dejabug` is enough and no app is needed. Run `dejabug watch <video or GitHub issue link> -o dejabug-out/<name>`, read the evidence as in step 1, and write the steps yourself: one numbered step per user action with its time, only actions you can see evidence for, unsure ones marked "not sure", then the bug moment in one line. Stop there.
+For written steps only, `pip install dejabug` is enough and no app is needed. Run `dejabug steps <video or GitHub issue link>` and it writes and prints the steps. Stop there.
 
 You also need the app from the video running locally for test mode. Get its URL from the user, or find the project's dev script and start it.
 
