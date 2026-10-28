@@ -13,7 +13,13 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
-> **Status: early.** A [benchmark on 20 bug videos from other people](bench/benchmark/steps-accuracy.md) showed that the first version of `dejabug steps` missed most of what users do (it found 9 of 175 actions). 0.2.0 rebuilds it: a model watches the whole recording and a second pass checks every step against the frames. On a separate set of 20 development videos, given the issue text, it found 62% to 67% of the actions in the median video, 68% to 74% of all the steps it listed were right, and it named the bug moment in 14 to 17 of the 20 (two runs). From the video alone it does worse: about 56% found and 50% right in earlier runs. Check its steps before relying on them. The 20-video benchmark, rerun once on 21 October, [did not pass](bench/benchmark/steps-accuracy-0.2.0.md): 0.2.0 timed out on 8 of the 20 videos (fixed in 0.2.1), and from the bare video it named the bug moment in only 5. A new benchmark on 20 fresh videos is planned. `dejabug run` (video to verified test) is in beta and runs with Claude Code only.
+<p align="center"><img src="docs/steps-demo.gif" alt="The reporter's video of an MUI Autocomplete bug plays on the left; dejabug's steps appear on the right as each action happens, ending with the bug: the list jumps back to the top after clicking Inception." width="800"></p>
+
+```bash
+uvx dejabug steps https://github.com/mui/material-ui/issues/47203
+```
+
+> **Status: early.** The [20-video benchmark](bench/benchmark/steps-accuracy-0.2.0.md) did not pass: median recall 0.29, pooled precision 0.57 against a bar of 0.6 and 0.7. On a separate set of 20 development videos, given the issue text, recall was 62–67% and precision 68–74%; from the video alone, roughly 56% and 50%. `dejabug run` (video to verified Playwright test) is in beta, tested on macOS only.
 
 ## Steps to reproduce, from a bug video
 
@@ -21,9 +27,7 @@ For bug videos you didn't record yourself: a customer's mp4, a QA Loom, a clip o
 dejabug steps https://github.com/<owner>/<repo>/issues/<number>    # or a local .mp4 / .mov / .webm
 ```
 
-dejabug downloads the video attached to the issue, turns it into a film of frames every half second with what changed marked on each, and has Claude write the steps from it, with the issue text as context. It takes under a minute. Real output for [mui/material-ui#47203](https://github.com/mui/material-ui/issues/47203):
-
-<p align="center"><img src="docs/steps-demo.gif" alt="The reporter's video of an MUI Autocomplete bug plays on the left; dejabug's steps appear on the right as each action happens, ending with the bug: the list jumps back to the top after clicking Inception." width="800"></p>
+dejabug downloads the video attached to the issue, turns it into a film of frames every half second with what changed marked on each, and has Claude write the steps from it, with the issue text as context. Real output for [mui/material-ui#47203](https://github.com/mui/material-ui/issues/47203):
 
 ```
 1. Click Checkboxes Favorites field (1.0s)
@@ -36,7 +40,7 @@ to the top (The Shawshank Redemption) instead of preserving the scrolled positio
 
 Steps the model inferred rather than saw are marked "not sure". It works best when it can read what the reporter wrote: give it the issue link, or the ticket's text with `--report`. On our development videos that raised the share of correct steps from about 50% to about 70%, and it found the bug moment in 14 to 17 of 20 videos instead of 7 or 8. dejabug needs Claude Code or an `ANTHROPIC_API_KEY` for this. If the video can't leave your machine, `--no-ai` gives a local timeline of what changed on screen, with the frames to check it against. It's free and offline, but it isn't reliable steps: it misses most typing, keys and drags.
 
-## A failing test, checked against the video
+## A failing test, checked against the video (beta)
 
 ```bash
 dejabug run bug.mp4 --url http://localhost:5173
